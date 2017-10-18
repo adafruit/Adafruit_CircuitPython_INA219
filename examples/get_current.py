@@ -2,11 +2,11 @@ from board import *
 import time
 import busio
 
-import adafruit_INA219
+import adafruit_ina219
 
 myI2C = busio.I2C(SCL, SDA)
 
-ina219 = adafruit_INA219.INA219(myI2C)
+ina219 = adafruit_ina219.INA219(myI2C)
 
 print("ina219 test")
 
