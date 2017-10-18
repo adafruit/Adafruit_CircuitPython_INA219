@@ -10,7 +10,7 @@ Introduction
     :target: https://discord.gg/nBQh6qu
     :alt: Discord
 
-TODO
+CircuitPython driver for the `INA219 current sensor <https://www.adafruit.com/product/904>`_.
 
 Dependencies
 =============
@@ -26,7 +26,7 @@ This is easily achieved by downloading
 Usage Example
 =============
 
-TODO
+see `example <https://github.com/adafruit/Adafruit_CircuitPython_INA219/blob/master/examples/get_current.py>`_
 
 Contributing
 ============
