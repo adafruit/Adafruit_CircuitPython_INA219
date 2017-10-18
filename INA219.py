@@ -135,14 +135,14 @@ class INA219:
 	  	return value
 
 	"""
-	/*! 
+	 
 		@brief  Configures to INA219 to be able to measure up to 32V and 2A
 				of current.  Each unit of current corresponds to 100uA, and
 				each unit of power corresponds to 2mW. Counter overflow
 				occurs at 3.2A.
 				
 		@note   These calculations assume a 0.1 ohm resistor is present
-	*/
+	
 	"""
 	def set_calibration_32V_2A(self):
 		# By default we use a pretty huge range for the input voltage,
@@ -225,14 +225,14 @@ class INA219:
 
 
 	"""
-	/*! 
+	 
 		@brief  Configures to INA219 to be able to measure up to 32V and 1A
 				of current.  Each unit of current corresponds to 40uA, and each
 				unit of power corresponds to 800�W. Counter overflow occurs at
 				1.3A.
 				
 		@note   These calculations assume a 0.1 ohm resistor is present
-	*/
+	
 	"""
 	def set_calibration_32V_1A(self):
 	  # By default we use a pretty huge range for the input voltage,
@@ -401,9 +401,9 @@ class INA219:
 
 
 	"""
-	/*! 
+	 
 		@brief  Gets the raw bus voltage (16-bit signed integer, so +-32767)
-	*/
+	
 	"""
 	def get_bus_voltage_raw(self):
 	  value = self.read_register(INA219_REG_BUSVOLTAGE)
@@ -414,18 +414,18 @@ class INA219:
 
 
 	"""
-	/*! 
+	 
 		@brief  Gets the raw shunt voltage (16-bit signed integer, so +-32767)
-	*/
+	
 	"""
 	def get_shunt_voltage_raw(self):
 	  return self.to_signed(self.read_register(INA219_REG_SHUNTVOLTAGE))
 
 
 	"""
-	/*! 
+	 
 		@brief  Gets the raw current value (16-bit signed integer, so +-32767)
-	*/
+	
 	"""
 	def get_current_raw(self):
 
@@ -440,9 +440,9 @@ class INA219:
 
 	 
 	"""
-	/*! 
+	 
 		@brief  Gets the shunt voltage in mV (so +-327mV)
-	*/
+	
 	"""
 	def get_shunt_voltage_mV(self):
 	  value = self.get_shunt_voltage_raw()
@@ -450,9 +450,9 @@ class INA219:
 
 
 	"""
-	/*! 
+	 
 		@brief  Gets the shunt voltage in volts
-	*/
+	
 	"""
 	def get_bus_voltage_V(self):
 	  value = self.get_bus_voltage_raw()
@@ -460,10 +460,10 @@ class INA219:
 
 
 	"""
-	/*! 
+	 
 		@brief  Gets the current value in mA, taking into account the
 				config settings and current LSB
-	*/
+	
 	"""
 	def get_current_mA(self):
 	  valueDec = self.get_current_raw()
