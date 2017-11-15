@@ -137,7 +137,7 @@ class INA219:
 		buf[0] = reg
 		with self.i2c_device as i2c:
 			i2c.write(buf, end=1, stop=False)
-			i2c.read_into(buf, start=1)
+			i2c.readinto(buf, start=1)
 
 	  	value = (buf[1] << 8) | (buf[2])
 	  	return value
