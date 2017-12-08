@@ -1,30 +1,21 @@
-from board import *
 import time
+
+from board import SCL, SDA
 import busio
 
 import adafruit_ina219
 
-myI2C = busio.I2C(SCL, SDA)
+i2c_bus = busio.I2C(SCL, SDA)
 
-ina219 = adafruit_ina219.INA219(myI2C)
+ina219 = adafruit_ina219.INA219(i2c_bus)
 
 print("ina219 test")
 
-while(1):
-	shuntvoltage = 0
-	busvoltage = 0
-	current_mA = 0
-	loadvoltage = 0
+while True:
+    print("Bus Voltage:   {} V".format(ina219.bus_voltage))
+    print("Shunt Voltage: {} mV".format(ina219.shunt_voltage / 1000))
+    print("Load Voltage:  {} V".format(ina219.bus_voltage + ina219.shunt_voltage))
+    print("Current:       {} mA".format(ina219.current))
+    print("")
 
-	shuntvoltage = ina219.get_shunt_voltage_mV()
-	busvoltage = ina219.get_bus_voltage_V()
-	current_mA = ina219.get_current_mA()
-	loadvoltage = busvoltage + (shuntvoltage / 1000)
-
-	print("Bus Voltage:   " + str(busvoltage) + " V")
-	print("Shunt Voltage: " + str(shuntvoltage) + " mV")
-	print("Load Voltage:  " + str(loadvoltage) + " V")
-	print("Current:       " + str(current_mA) + " mA")
-	print("")
-
-	time.sleep(2)
+    time.sleep(2)
