@@ -118,7 +118,7 @@ def _to_signed(num):
     return num
 
 class INA219:
-    """Driver for the `INA219 current sensor"""
+    """Driver for the INA219 current sensor"""
     def __init__(self, i2c_bus, addr=0x40):
         self.i2c_device = I2CDevice(i2c_bus, addr)
 
