@@ -10,8 +10,8 @@ Introduction
     :target: https://discord.gg/nBQh6qu
     :alt: Discord
 
-.. image:: https://travis-ci.org/adafruit/Adafruit_CircuitPython_INA219.svg?branch=master
-    :target: https://travis-ci.org/adafruit/Adafruit_CircuitPython_INA219
+.. image:: https://travis-ci.com/adafruit/Adafruit_CircuitPython_INA219.svg?branch=master
+    :target: https://travis-ci.com/adafruit/Adafruit_CircuitPython_INA219
     :alt: Build Status
 
 CircuitPython driver for the `INA219 current sensor <https://www.adafruit.com/product/904>`_.
