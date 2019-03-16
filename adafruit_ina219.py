@@ -58,22 +58,33 @@ _REG_CONFIG                      = const(0x00)
 _CONFIG_RESET                    = const(0x8000)  # Reset Bit
 
 _CONFIG_BVOLTAGERANGE_MASK       = const(0x2000)  # Bus Voltage Range Mask
+_CONFIG_BVOLTAGERANGE_LSB        = const(13)      # Bus Voltage Range LSB position
 _CONFIG_BVOLTAGERANGE_16V        = const(0x0000)  # 0-16V Range
 _CONFIG_BVOLTAGERANGE_32V        = const(0x2000)  # 0-32V Range
 
 _CONFIG_GAIN_MASK                = const(0x1800)  # Gain Mask
+_CONFIG_GAIN_LSB                 = const(11)      # Gain LSB position
 _CONFIG_GAIN_1_40MV              = const(0x0000)  # Gain 1, 40mV Range
 _CONFIG_GAIN_2_80MV              = const(0x0800)  # Gain 2, 80mV Range
 _CONFIG_GAIN_4_160MV             = const(0x1000)  # Gain 4, 160mV Range
 _CONFIG_GAIN_8_320MV             = const(0x1800)  # Gain 8, 320mV Range
 
 _CONFIG_BADCRES_MASK             = const(0x0780)  # Bus ADC Resolution Mask
-_CONFIG_BADCRES_9BIT             = const(0x0080)  # 9-bit bus res = 0..511
-_CONFIG_BADCRES_10BIT            = const(0x0100)  # 10-bit bus res = 0..1023
-_CONFIG_BADCRES_11BIT            = const(0x0200)  # 11-bit bus res = 0..2047
-_CONFIG_BADCRES_12BIT            = const(0x0400)  # 12-bit bus res = 0..4097
+_CONFIG_BADCRES_LSB              = const(7)       # Bus ADC Resolution LSB position
+_CONFIG_BADCRES_9BIT             = const(0x0000)  # 9-bit bus res = 0..511
+_CONFIG_BADCRES_10BIT            = const(0x0080)  # 10-bit bus res = 0..1023
+_CONFIG_BADCRES_11BIT            = const(0x0100)  # 11-bit bus res = 0..2047
+_CONFIG_BADCRES_12BIT            = const(0x0180)  # 12-bit bus res = 0..4097
+_CONFIG_BADCRES_12BIT_2S_1060US  = const(0x0480)  # 2 x 12-bit bus samples averaged together
+_CONFIG_BADCRES_12BIT_4S_2130US  = const(0x0500)  # 4 x 12-bit bus samples averaged together
+_CONFIG_BADCRES_12BIT_8S_4260US  = const(0x0580)  # 8 x 12-bit bus samples averaged together
+_CONFIG_BADCRES_12BIT_16S_8510US = const(0x0600)  # 16 x 12-bit bus samples averaged together
+_CONFIG_BADCRES_12BIT_32S_17MS   = const(0x0680)  # 32 x 12-bit bus samples averaged together
+_CONFIG_BADCRES_12BIT_64S_34MS   = const(0x0700)  # 64 x 12-bit bus samples averaged together
+_CONFIG_BADCRES_12BIT_128S_69MS  = const(0x0780)  # 128 x 12-bit bus samples averaged together
 
 _CONFIG_SADCRES_MASK             = const(0x0078)  # Shunt ADC Resolution and Averaging Mask
+_CONFIG_SADCRES_LSB              = const(3)       # Shunt ADC Resolution and Averaging LSB position
 _CONFIG_SADCRES_9BIT_1S_84US     = const(0x0000)  # 1 x 9-bit shunt sample
 _CONFIG_SADCRES_10BIT_1S_148US   = const(0x0008)  # 1 x 10-bit shunt sample
 _CONFIG_SADCRES_11BIT_1S_276US   = const(0x0010)  # 1 x 11-bit shunt sample
@@ -87,6 +98,7 @@ _CONFIG_SADCRES_12BIT_64S_34MS   = const(0x0070)  # 64 x 12-bit shunt samples av
 _CONFIG_SADCRES_12BIT_128S_69MS  = const(0x0078)  # 128 x 12-bit shunt samples averaged together
 
 _CONFIG_MODE_MASK                = const(0x0007)  # Operating Mode Mask
+_CONFIG_MODE_LSB                 = const(0)       # Operating Mode LSB position
 _CONFIG_MODE_POWERDOWN           = const(0x0000)
 _CONFIG_MODE_SVOLT_TRIGGERED     = const(0x0001)
 _CONFIG_MODE_BVOLT_TRIGGERED     = const(0x0002)
@@ -147,6 +159,63 @@ class INA219:
         value = (buf[1] << 8) | (buf[2])
         return value
 
+    @property
+    def config(self):
+        return self._read_register(_REG_CONFIG)
+      
+    @config.setter
+    def config(self,value):
+        self._write_register(_REG_CONFIG,value)
+
+    @property
+    def reset(self):
+        self._write_register(_REG_CONFIG,_CONFIG_RESET)
+
+    @property
+    def bus_voltage_range(self):
+        return (self.config & _CONFIG_BVOLTAGERANGE_MASK) >> _CONFIG_BVOLTAGERANGE_LSB
+
+    @bus_voltage_range.setter
+    def bus_voltage_range(self,value):
+        value = (value << _CONFIG_BVOLTAGERANGE_LSB) & _CONFIG_BVOLTAGERANGE_MASK
+        self.config = value | (self.config & ~_CONFIG_BVOLTAGERANGE_MASK)
+
+    @property
+    def gain(self):
+        return (self.config & _CONFIG_GAIN_MASK) >> _CONFIG_GAIN_LSB
+
+    @gain.setter
+    def gain(self,value):
+        value = (value << _CONFIG_GAIN_LSB) & _CONFIG_GAIN_MASK
+        self.config = value | (self.config & ~_CONFIG_GAIN_MASK)
+
+    @property
+    def bus_adc_res(self):
+        return (self.config & _CONFIG_BADCRES_MASK) >> _CONFIG_BADCRES_LSB
+
+    @bus_adc_res.setter
+    def bus_adc_res(self,value):
+        value = (value << _CONFIG_BADCRES_LSB) & _CONFIG_BADCRES_MASK
+        self.config = value | (self.config & ~_CONFIG_BADCRES_MASK)
+
+    @property
+    def shunt_adc_res(self):
+        return (self.config & _CONFIG_SADCRES_MASK) >> _CONFIG_SADCRES_LSB
+
+    @shunt_adc_res.setter
+    def shunt_adc_res(self,value):
+        value = (value << _CONFIG_SADCRES_LSB) & _CONFIG_SADCRES_MASK
+        self.config = value | (self.config & ~_CONFIG_SADCRES_MASK)
+
+    @property
+    def mode(self):
+        return (self.config & _CONFIG_MODE_MASK) >> _CONFIG_MODE_LSB
+
+    @mode.setter
+    def mode(self,value):
+        value = (value << _CONFIG_MODE_LSB) & _CONFIG_MODE_MASK
+        self.config = value | (self.config & ~_CONFIG_MODE_MASK)
+        
     @property
     def shunt_voltage(self):
         """The shunt voltage (between V+ and V-) in Volts (so +-.327V)"""
