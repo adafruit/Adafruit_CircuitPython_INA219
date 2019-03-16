@@ -161,61 +161,68 @@ class INA219:
 
     @property
     def config(self):
+        """read/write to configuration register - see datasheet for values"""
         return self._read_register(_REG_CONFIG)
-      
+
     @config.setter
-    def config(self,value):
-        self._write_register(_REG_CONFIG,value)
+    def config(self, value):
+        self._write_register(_REG_CONFIG, value)
 
     @property
     def reset(self):
-        self._write_register(_REG_CONFIG,_CONFIG_RESET)
+        """reset the device"""
+        self._write_register(_REG_CONFIG, _CONFIG_RESET)
 
     @property
     def bus_voltage_range(self):
+        """read/write the Bus Voltage Range field of the configuration register"""
         return (self.config & _CONFIG_BVOLTAGERANGE_MASK) >> _CONFIG_BVOLTAGERANGE_LSB
 
     @bus_voltage_range.setter
-    def bus_voltage_range(self,value):
+    def bus_voltage_range(self, value):
         value = (value << _CONFIG_BVOLTAGERANGE_LSB) & _CONFIG_BVOLTAGERANGE_MASK
         self.config = value | (self.config & ~_CONFIG_BVOLTAGERANGE_MASK)
 
     @property
     def gain(self):
+        """read/write the Gain field of the configuration register"""
         return (self.config & _CONFIG_GAIN_MASK) >> _CONFIG_GAIN_LSB
 
     @gain.setter
-    def gain(self,value):
+    def gain(self, value):
         value = (value << _CONFIG_GAIN_LSB) & _CONFIG_GAIN_MASK
         self.config = value | (self.config & ~_CONFIG_GAIN_MASK)
 
     @property
     def bus_adc_res(self):
+        """read/write the Bus ADC Resolution/Averaging field fo the configuration register"""
         return (self.config & _CONFIG_BADCRES_MASK) >> _CONFIG_BADCRES_LSB
 
     @bus_adc_res.setter
-    def bus_adc_res(self,value):
+    def bus_adc_res(self, value):
         value = (value << _CONFIG_BADCRES_LSB) & _CONFIG_BADCRES_MASK
         self.config = value | (self.config & ~_CONFIG_BADCRES_MASK)
 
     @property
     def shunt_adc_res(self):
+        """read/write the Shunt ADC Resolution/Averaging field fo the configuration register"""
         return (self.config & _CONFIG_SADCRES_MASK) >> _CONFIG_SADCRES_LSB
 
     @shunt_adc_res.setter
-    def shunt_adc_res(self,value):
+    def shunt_adc_res(self, value):
         value = (value << _CONFIG_SADCRES_LSB) & _CONFIG_SADCRES_MASK
         self.config = value | (self.config & ~_CONFIG_SADCRES_MASK)
 
     @property
     def mode(self):
+        """read/write the Mode field fo the configuration register"""
         return (self.config & _CONFIG_MODE_MASK) >> _CONFIG_MODE_LSB
 
     @mode.setter
-    def mode(self,value):
+    def mode(self, value):
         value = (value << _CONFIG_MODE_LSB) & _CONFIG_MODE_MASK
         self.config = value | (self.config & ~_CONFIG_MODE_MASK)
-        
+
     @property
     def shunt_voltage(self):
         """The shunt voltage (between V+ and V-) in Volts (so +-.327V)"""
