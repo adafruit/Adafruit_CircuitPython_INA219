@@ -21,6 +21,7 @@ while True:
     shunt_voltage = ina219.shunt_voltage
     current = ina219.current
 
+    # INA219 measure bus voltage on the load side. So power supply voltage = busVoltage+shuntVoltage
     print("PSU Voltage:   {:6.3f} V".format(bus_voltage + shunt_voltage))
     print("Shunt Voltage: {:9.6f} V".format(shunt_voltage))
     print("Load Voltage:  {:6.3f} V".format(bus_voltage))
