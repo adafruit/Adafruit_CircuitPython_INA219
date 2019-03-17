@@ -1,27 +1,35 @@
 import time
+import board
+from adafruit_ina219 import *
 
-from board import SCL, SDA
-import busio
+i2c_bus = board.I2C()
 
-import adafruit_ina219
-
-i2c_bus = busio.I2C(SCL, SDA)
-
-ina219 = adafruit_ina219.INA219(i2c_bus)
-
-# change configuration to use 32 samples averaging for both bus voltage and shunt voltage
-ina219.bus_adc_res = 0x0D       # BADCRES_12BIT_32S_17MS
-ina219.shunt_adc_res = 0x0D     # SADCRES_12BIT_32S_17MS
-ina219.bus_voltage_range = 0    # BVOLTAGERANGE_16V
+ina219 = INA219(i2c_bus)
 
 print("ina219 test")
 
-while True:
-    bus_voltage = ina219.bus_voltage
-    shunt_voltage = ina219.shunt_voltage
-    current = ina219.current
+# display some of the advanced field (just to test)
+print( "Config register:")
+print( "  bus_voltage_range:    0x%1X" % ina219.bus_voltage_range )
+print( "  gain:                 0x%1X" % ina219.gain )
+print( "  bus_adc_resolution:   0x%1X" % ina219.bus_adc_resolution )
+print( "  shunt_adc_resolution: 0x%1X" % ina219.shunt_adc_resolution )
+print( "  mode:                 0x%1X" % ina219.mode )
+print ("")
 
-    # INA219 measure bus voltage on the load side. So power supply voltage = busVoltage+shuntVoltage
+# optional : change configuration to use 32 samples averaging for both bus voltage and shunt voltage
+ina219.bus_adc_resolution = ADCResolution.ADCRES_12BIT_32S
+ina219.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_32S
+# optional : change voltage range to 16V
+ina219.bus_voltage_range = BusVoltageRange.RANGE_16V
+
+# measure and display loop
+while True:
+    bus_voltage = ina219.bus_voltage        # voltage on V- (load side)
+    shunt_voltage = ina219.shunt_voltage    # voltage between V+ and V- across the shunt
+    current = ina219.current                # current in mA
+
+    # INA219 measure bus voltage on the load side. So PSU voltage = bus_voltage + shunt_voltage
     print("PSU Voltage:   {:6.3f} V".format(bus_voltage + shunt_voltage))
     print("Shunt Voltage: {:9.6f} V".format(shunt_voltage))
     print("Load Voltage:  {:6.3f} V".format(bus_voltage))
