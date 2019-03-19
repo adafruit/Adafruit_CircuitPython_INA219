@@ -60,10 +60,6 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_INA219.git"
 # Config Register (R/W)
 _REG_CONFIG                 = const(0x00)
 
-class Reset:
-    """Constants for ``reset``"""
-    RESET                   = const(0x01)       # write RESET to reset
-
 class BusVoltageRange:
     """Constants for ``bus_voltage_range``"""
     RANGE_16V               = const(0x00)       # set bus voltage range to 16V
