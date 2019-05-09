@@ -46,71 +46,73 @@ Implementation Notes
 from micropython import const
 from adafruit_bus_device.i2c_device import I2CDevice
 
+from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
+from adafruit_register.i2c_bits import ROBits, RWBits
+from adafruit_register.i2c_bit import ROBit
+
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_INA219.git"
 
 # Bits
 # pylint: disable=bad-whitespace
-_READ                            = const(0x01)
+# pylint: disable=too-few-public-methods
 
 # Config Register (R/W)
-_REG_CONFIG                      = const(0x00)
-_CONFIG_RESET                    = const(0x8000)  # Reset Bit
+_REG_CONFIG                 = const(0x00)
 
-_CONFIG_BVOLTAGERANGE_MASK       = const(0x2000)  # Bus Voltage Range Mask
-_CONFIG_BVOLTAGERANGE_16V        = const(0x0000)  # 0-16V Range
-_CONFIG_BVOLTAGERANGE_32V        = const(0x2000)  # 0-32V Range
+class BusVoltageRange:
+    """Constants for ``bus_voltage_range``"""
+    RANGE_16V               = 0x00      # set bus voltage range to 16V
+    RANGE_32V               = 0x01      # set bus voltage range to 32V (default)
 
-_CONFIG_GAIN_MASK                = const(0x1800)  # Gain Mask
-_CONFIG_GAIN_1_40MV              = const(0x0000)  # Gain 1, 40mV Range
-_CONFIG_GAIN_2_80MV              = const(0x0800)  # Gain 2, 80mV Range
-_CONFIG_GAIN_4_160MV             = const(0x1000)  # Gain 4, 160mV Range
-_CONFIG_GAIN_8_320MV             = const(0x1800)  # Gain 8, 320mV Range
+class Gain:
+    """Constants for ``gain``"""
+    DIV_1_40MV              = 0x00      # shunt prog. gain set to  1, 40 mV range
+    DIV_2_80MV              = 0x01      # shunt prog. gain set to /2, 80 mV range
+    DIV_4_160MV             = 0x02      # shunt prog. gain set to /4, 160 mV range
+    DIV_8_320MV             = 0x03      # shunt prog. gain set to /8, 320 mV range
 
-_CONFIG_BADCRES_MASK             = const(0x0780)  # Bus ADC Resolution Mask
-_CONFIG_BADCRES_9BIT             = const(0x0080)  # 9-bit bus res = 0..511
-_CONFIG_BADCRES_10BIT            = const(0x0100)  # 10-bit bus res = 0..1023
-_CONFIG_BADCRES_11BIT            = const(0x0200)  # 11-bit bus res = 0..2047
-_CONFIG_BADCRES_12BIT            = const(0x0400)  # 12-bit bus res = 0..4097
+class ADCResolution:
+    """Constants for ``bus_adc_resolution`` or ``shunt_adc_resolution``"""
+    ADCRES_9BIT_1S          = 0x00      #  9bit,   1 sample,     84us
+    ADCRES_10BIT_1S         = 0x01      # 10bit,   1 sample,    148us
+    ADCRES_11BIT_1S         = 0x02      # 11 bit,  1 sample,    276us
+    ADCRES_12BIT_1S         = 0x03      # 12 bit,  1 sample,    532us
+    ADCRES_12BIT_2S         = 0x09      # 12 bit,  2 samples,  1.06ms
+    ADCRES_12BIT_4S         = 0x0A      # 12 bit,  4 samples,  2.13ms
+    ADCRES_12BIT_8S         = 0x0B      # 12bit,   8 samples,  4.26ms
+    ADCRES_12BIT_16S        = 0x0C      # 12bit,  16 samples,  8.51ms
+    ADCRES_12BIT_32S        = 0x0D      # 12bit,  32 samples, 17.02ms
+    ADCRES_12BIT_64S        = 0x0E      # 12bit,  64 samples, 34.05ms
+    ADCRES_12BIT_128S       = 0x0F      # 12bit, 128 samples, 68.10ms
 
-_CONFIG_SADCRES_MASK             = const(0x0078)  # Shunt ADC Resolution and Averaging Mask
-_CONFIG_SADCRES_9BIT_1S_84US     = const(0x0000)  # 1 x 9-bit shunt sample
-_CONFIG_SADCRES_10BIT_1S_148US   = const(0x0008)  # 1 x 10-bit shunt sample
-_CONFIG_SADCRES_11BIT_1S_276US   = const(0x0010)  # 1 x 11-bit shunt sample
-_CONFIG_SADCRES_12BIT_1S_532US   = const(0x0018)  # 1 x 12-bit shunt sample
-_CONFIG_SADCRES_12BIT_2S_1060US  = const(0x0048)  # 2 x 12-bit shunt samples averaged together
-_CONFIG_SADCRES_12BIT_4S_2130US  = const(0x0050)  # 4 x 12-bit shunt samples averaged together
-_CONFIG_SADCRES_12BIT_8S_4260US  = const(0x0058)  # 8 x 12-bit shunt samples averaged together
-_CONFIG_SADCRES_12BIT_16S_8510US = const(0x0060)  # 16 x 12-bit shunt samples averaged together
-_CONFIG_SADCRES_12BIT_32S_17MS   = const(0x0068)  # 32 x 12-bit shunt samples averaged together
-_CONFIG_SADCRES_12BIT_64S_34MS   = const(0x0070)  # 64 x 12-bit shunt samples averaged together
-_CONFIG_SADCRES_12BIT_128S_69MS  = const(0x0078)  # 128 x 12-bit shunt samples averaged together
-
-_CONFIG_MODE_MASK                = const(0x0007)  # Operating Mode Mask
-_CONFIG_MODE_POWERDOWN           = const(0x0000)
-_CONFIG_MODE_SVOLT_TRIGGERED     = const(0x0001)
-_CONFIG_MODE_BVOLT_TRIGGERED     = const(0x0002)
-_CONFIG_MODE_SANDBVOLT_TRIGGERED = const(0x0003)
-_CONFIG_MODE_ADCOFF              = const(0x0004)
-_CONFIG_MODE_SVOLT_CONTINUOUS    = const(0x0005)
-_CONFIG_MODE_BVOLT_CONTINUOUS    = const(0x0006)
-_CONFIG_MODE_SANDBVOLT_CONTINUOUS = const(0x0007)
+class Mode:
+    """Constants for ``mode``"""
+    POWERDOW                = 0x00      # power down
+    SVOLT_TRIGGERED         = 0x01      # shunt voltage triggered
+    BVOLT_TRIGGERED         = 0x02      # bus voltage triggered
+    SANDBVOLT_TRIGGERED     = 0x03      # shunt and bus voltage triggered
+    ADCOFF                  = 0x04      # ADC off
+    SVOLT_CONTINUOUS        = 0x05      # shunt voltage continuous
+    BVOLT_CONTINUOUS        = 0x06      # bus voltage continuous
+    SANDBVOLT_CONTINUOUS    = 0x07      # shunt and bus voltage continuous
 
 # SHUNT VOLTAGE REGISTER (R)
-_REG_SHUNTVOLTAGE                = const(0x01)
+_REG_SHUNTVOLTAGE           = const(0x01)
 
 # BUS VOLTAGE REGISTER (R)
-_REG_BUSVOLTAGE                  = const(0x02)
+_REG_BUSVOLTAGE             = const(0x02)
 
 # POWER REGISTER (R)
-_REG_POWER                       = const(0x03)
+_REG_POWER                  = const(0x03)
 
 # CURRENT REGISTER (R)
-_REG_CURRENT                     = const(0x04)
+_REG_CURRENT                = const(0x04)
 
 # CALIBRATION REGISTER (R/W)
-_REG_CALIBRATION                 = const(0x05)
-# pylint: enable=bad-whitespace
+_REG_CALIBRATION            = const(0x05)
+# pylint: enable=too-few-public-methods
+
 
 def _to_signed(num):
     if num > 0x7FFF:
@@ -119,63 +121,115 @@ def _to_signed(num):
 
 class INA219:
     """Driver for the INA219 current sensor"""
+
+    # Basic API:
+
+    # INA219( i2c_bus, i2c_addr)  Create instance of INA219 sensor
+    #    :param i2c_bus          The I2C bus the INA219is connected to
+    #    :param i2c_addr (0x40)  Address of the INA219 on the bus (default 0x40)
+
+    # shunt_voltage               RO : shunt voltage scaled to Volts
+    # bus_voltage                 RO : bus voltage (V- to GND) scaled to volts (==load voltage)
+    # current                     RO : current through shunt, scaled to mA
+    # power                       RO : power consumption of the load, scaled to Watt
+    # set_calibration_32V_2A()    Initialize chip for 32V max and up to 2A (default)
+    # set_calibration_32V_1A()    Initialize chip for 32V max and up to 1A
+    # set_calibration_16V_400mA() Initialize chip for 16V max and up to 400mA
+
+    # Advanced API:
+    # config register break-up
+    #   reset                     WO : Write Reset.RESET to reset the chip (must recalibrate)
+    #   bus_voltage_range         RW : Bus Voltage Range field (use BusVoltageRange.XXX constants)
+    #   gain                      RW : Programmable Gain field (use Gain.XXX constants)
+    #   bus_adc_resolution        RW : Bus ADC resolution and averaging modes (ADCResolution.XXX)
+    #   shunt_adc_resolution      RW : Shunt ADC resolution and averaging modes (ADCResolution.XXX)
+    #   mode                      RW : operating modes in config register (use Mode.XXX constants)
+
+    # raw_shunt_voltage           RO : Shunt Voltage register (not scaled)
+    # raw_bus_voltage             RO : Bus Voltage field in Bus Voltage register (not scaled)
+    # conversion_ready            RO : Conversion Ready bit in Bus Voltage register
+    # overflow                    RO : Math Overflow bit in Bus Voltage register
+    # raw_power                   RO : Power register (not scaled)
+    # raw_current                 RO : Current register (not scaled)
+    # calibration                 RW : calibration register (note: value is cached)
+
     def __init__(self, i2c_bus, addr=0x40):
         self.i2c_device = I2CDevice(i2c_bus, addr)
-
         self.i2c_addr = addr
-        # Multiplier in mA used to determine current from raw reading
-        self._current_lsb = 0
-        # Multiplier in W used to determine power from raw reading
-        self._power_lsb = 0
 
         # Set chip to known config values to start
-        self._cal_value = 4096
+        self._cal_value = 0
+        self._current_lsb = 0
+        self._power_lsb = 0
         self.set_calibration_32V_2A()
 
-    def _write_register(self, reg, value):
-        seq = bytearray([reg, (value >> 8) & 0xFF, value & 0xFF])
-        with self.i2c_device as i2c:
-            i2c.write(seq)
+    # config register break-up
+    reset                   = RWBits( 1, _REG_CONFIG, 15, 2, False)
+    bus_voltage_range       = RWBits( 1, _REG_CONFIG, 13, 2, False)
+    gain                    = RWBits( 2, _REG_CONFIG, 11, 2, False)
+    bus_adc_resolution      = RWBits( 4, _REG_CONFIG,  7, 2, False)
+    shunt_adc_resolution    = RWBits( 4, _REG_CONFIG,  3, 2, False)
+    mode                    = RWBits( 3, _REG_CONFIG,  0, 2, False)
 
-    def _read_register(self, reg):
-        buf = bytearray(3)
-        buf[0] = reg
-        with self.i2c_device as i2c:
-            i2c.write(buf, end=1, stop=False)
-            i2c.readinto(buf, start=1)
+    # shunt voltage register
+    raw_shunt_voltage       = ROUnaryStruct(_REG_SHUNTVOLTAGE, ">h")
 
-        value = (buf[1] << 8) | (buf[2])
-        return value
+    #bus voltage register
+    raw_bus_voltage         = ROBits( 12, _REG_BUSVOLTAGE, 3, 2, False)
+    conversion_ready        = ROBit(      _REG_BUSVOLTAGE, 1, 2, False)
+    overflow                = ROBit(      _REG_BUSVOLTAGE, 0, 2, False)
+
+    # power and current registers
+    raw_power               = ROUnaryStruct(_REG_POWER, ">H")
+    raw_current             = ROUnaryStruct(_REG_CURRENT, ">h")
+
+    # calibration register
+    _raw_calibration        = UnaryStruct(_REG_CALIBRATION, ">H")
+
+    @property
+    def calibration(self):
+        """Calibration register (cached value)"""
+        return self._cal_value # return cached value
+
+    @calibration.setter
+    def calibration(self, cal_value):
+        self._cal_value = cal_value # value is cached for ``current`` and ``power`` properties
+        self._raw_calibration = self._cal_value
 
     @property
     def shunt_voltage(self):
         """The shunt voltage (between V+ and V-) in Volts (so +-.327V)"""
-        value = _to_signed(self._read_register(_REG_SHUNTVOLTAGE))
         # The least signficant bit is 10uV which is 0.00001 volts
-        return value * 0.00001
+        return self.raw_shunt_voltage * 0.00001
 
     @property
     def bus_voltage(self):
         """The bus voltage (between V- and GND) in Volts"""
-        raw_voltage = self._read_register(_REG_BUSVOLTAGE)
-
         # Shift to the right 3 to drop CNVR and OVF and multiply by LSB
         # Each least signficant bit is 4mV
-        voltage_mv = _to_signed(raw_voltage >> 3) * 4
-        return voltage_mv * 0.001
+        return self.raw_bus_voltage * 0.004
 
     @property
     def current(self):
         """The current through the shunt resistor in milliamps."""
         # Sometimes a sharp load will reset the INA219, which will
         # reset the cal register, meaning CURRENT and POWER will
-        # not be available ... athis by always setting a cal
+        # not be available ... always setting a cal
         # value even if it's an unfortunate extra step
-        self._write_register(_REG_CALIBRATION, self._cal_value)
-
+        self._raw_calibration = self._cal_value
         # Now we can safely read the CURRENT register!
-        raw_current = _to_signed(self._read_register(_REG_CURRENT))
-        return raw_current * self._current_lsb
+        return self.raw_current * self._current_lsb
+
+    @property
+    def power(self):
+        """The power through the load in Watt."""
+        # Sometimes a sharp load will reset the INA219, which will
+        # reset the cal register, meaning CURRENT and POWER will
+        # not be available ... always setting a cal
+        # value even if it's an unfortunate extra step
+        self._raw_calibration = self._cal_value
+        # Now we can safely read the CURRENT register!
+        return self.raw_power * self._power_lsb
 
     def set_calibration_32V_2A(self): # pylint: disable=invalid-name
         """Configures to INA219 to be able to measure up to 32V and 2A of current. Counter
@@ -249,15 +303,14 @@ class INA219:
         # MaximumPower = 102.4W
 
         # Set Calibration register to 'Cal' calculated above
-        self._write_register(_REG_CALIBRATION, self._cal_value)
+        self._raw_calibration = self._cal_value
 
         # Set Config register to take into account the settings above
-        config = _CONFIG_BVOLTAGERANGE_32V | \
-                 _CONFIG_GAIN_8_320MV | \
-                 _CONFIG_BADCRES_12BIT | \
-                 _CONFIG_SADCRES_12BIT_1S_532US | \
-                 _CONFIG_MODE_SANDBVOLT_CONTINUOUS
-        self._write_register(_REG_CONFIG, config)
+        self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        self.gain = Gain.DIV_8_320MV
+        self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.mode = Mode.SANDBVOLT_CONTINUOUS
 
     def set_calibration_32V_1A(self): # pylint: disable=invalid-name
         """Configures to INA219 to be able to measure up to 32V and 1A of current. Counter overflow
@@ -332,15 +385,14 @@ class INA219:
         # MaximumPower = 41.94176W
 
         # Set Calibration register to 'Cal' calculated above
-        self._write_register(_REG_CALIBRATION, self._cal_value)
+        self._raw_calibration = self._cal_value
 
         # Set Config register to take into account the settings above
-        config = (_CONFIG_BVOLTAGERANGE_32V |
-                  _CONFIG_GAIN_8_320MV |
-                  _CONFIG_BADCRES_12BIT |
-                  _CONFIG_SADCRES_12BIT_1S_532US |
-                  _CONFIG_MODE_SANDBVOLT_CONTINUOUS)
-        self._write_register(_REG_CONFIG, config)
+        self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        self.gain = Gain.DIV_8_320MV
+        self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.mode = Mode.SANDBVOLT_CONTINUOUS
 
     def set_calibration_16V_400mA(self): # pylint: disable=invalid-name
         """Configures to INA219 to be able to measure up to 16V and 400mA of current. Counter
@@ -416,12 +468,11 @@ class INA219:
         # MaximumPower = 6.4W
 
         # Set Calibration register to 'Cal' calculated above
-        self._write_register(_REG_CALIBRATION, self._cal_value)
+        self._raw_calibration = self._cal_value
 
         # Set Config register to take into account the settings above
-        config = (_CONFIG_BVOLTAGERANGE_16V |
-                  _CONFIG_GAIN_1_40MV |
-                  _CONFIG_BADCRES_12BIT |
-                  _CONFIG_SADCRES_12BIT_1S_532US |
-                  _CONFIG_MODE_SANDBVOLT_CONTINUOUS)
-        self._write_register(_REG_CONFIG, config)
+        self.bus_voltage_range = BusVoltageRange.RANGE_16V
+        self.gain = Gain.DIV_1_40MV
+        self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.mode = Mode.SANDBVOLT_CONTINUOUS
