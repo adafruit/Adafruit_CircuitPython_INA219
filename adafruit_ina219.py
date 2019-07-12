@@ -175,7 +175,7 @@ class INA219:
     raw_shunt_voltage       = ROUnaryStruct(_REG_SHUNTVOLTAGE, ">h")
 
     #bus voltage register
-    raw_bus_voltage         = ROBits( 12, _REG_BUSVOLTAGE, 3, 2, False)
+    raw_bus_voltage         = ROBits( 13, _REG_BUSVOLTAGE, 3, 2, False)
     conversion_ready        = ROBit(      _REG_BUSVOLTAGE, 1, 2, False)
     overflow                = ROBit(      _REG_BUSVOLTAGE, 0, 2, False)
 
