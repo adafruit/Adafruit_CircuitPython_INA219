@@ -477,7 +477,11 @@ class INA219:
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.mode = Mode.SANDBVOLT_CONTINUOUS
 
-    def set_calibration_16V_5A(self):
+    def set_calibration_16V_5A(self): # pylint: disable=invalid-name
+        """Configures to INA219 to be able to measure up to 16V and 5000mA of current. Counter
+           overflow occurs at 8.0A.
+
+           .. note:: These calculations assume a 0.02 ohm shunt resistor is present"""
         # Calibration which uses the highest precision for
         # current measurement (0.1mA), at the expense of
         # only supporting 16V at 5000mA max.
