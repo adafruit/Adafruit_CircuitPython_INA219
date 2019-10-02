@@ -71,7 +71,6 @@ class Gain:
     DIV_2_80MV              = 0x01      # shunt prog. gain set to /2, 80 mV range
     DIV_4_160MV             = 0x02      # shunt prog. gain set to /4, 160 mV range
     DIV_8_320MV             = 0x03      # shunt prog. gain set to /8, 320 mV range
-    AUTO                    = -1        # shunt prog. gain set to automatic
 
 class ADCResolution:
     """Constants for ``bus_adc_resolution`` or ``shunt_adc_resolution``"""
@@ -484,12 +483,12 @@ class INA219:
         # only supporting 16V at 5000mA max.
 
         # VBUS_MAX = 16V
-        # VSHUNT_MAX = 0.08          (Assumes Gain 2, 80mV)
+        # VSHUNT_MAX = 0.16          (Assumes Gain 3, 160mV)
         # RSHUNT = 0.02              (Resistor value in ohms)
 
         # 1. Determine max possible current
         # MaxPossible_I = VSHUNT_MAX / RSHUNT
-        # MaxPossible_I = 4.0A
+        # MaxPossible_I = 8.0A
 
         # 2. Determine max expected current
         # MaxExpected_I = 5.0A
@@ -513,7 +512,7 @@ class INA219:
 
         # 6. Calculate the power LSB
         # PowerLSB = 20 * CurrentLSB
-        # PowerLSB = 0.001 (1mW per bit)
+        # PowerLSB = 0.003 (3.048mW per bit)
         self._power_lsb = 0.003048
 
         # 7. Compute the maximum current and shunt voltage values before overflow
@@ -526,7 +525,7 @@ class INA219:
 
         # Set Config register to take into account the settings above
         self.bus_voltage_range = BusVoltageRange.RANGE_16V
-        self.gain = Gain.AUTO
+        self.gain = Gain.DIV_4_160MV
         self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.mode = Mode.SANDBVOLT_CONTINUOUS
