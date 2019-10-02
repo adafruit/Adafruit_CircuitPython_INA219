@@ -39,7 +39,7 @@ while True:
     print("Shunt Voltage: {:9.6f} V".format(shunt_voltage))
     print("Load Voltage:  {:6.3f} V".format(bus_voltage))
     print("Current:       {:9.6f} A".format(current/1000))
-    print("Power:         {:9.6f} W".format(power))
+    print("Power:         {:9.6f} mW".format(power*1000))
     print("")
 
     time.sleep(2)
