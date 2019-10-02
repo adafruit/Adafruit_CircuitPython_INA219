@@ -7,7 +7,8 @@ from adafruit_ina219 import ADCResolution, BusVoltageRange, INA219
 
 i2c_bus = board.I2C()
 
-ina219 = INA219(i2c_bus)
+ina219 = INA219(i2c_bus, 0x41)
+ina219.set_calibration_16V_5A()
 
 print("ina219 test")
 
@@ -21,10 +22,10 @@ print("  mode:                 0x%1X" % ina219.mode)
 print("")
 
 # optional : change configuration to use 32 samples averaging for both bus voltage and shunt voltage
-ina219.bus_adc_resolution = ADCResolution.ADCRES_12BIT_32S
-ina219.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_32S
+#ina219.bus_adc_resolution = ADCResolution.ADCRES_12BIT_32S
+#ina219.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_32S
 # optional : change voltage range to 16V
-ina219.bus_voltage_range = BusVoltageRange.RANGE_16V
+#ina219.bus_voltage_range = BusVoltageRange.RANGE_16V
 
 # measure and display loop
 while True:

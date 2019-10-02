@@ -476,3 +476,82 @@ class INA219:
         self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.mode = Mode.SANDBVOLT_CONTINUOUS
+
+    def set_calibration_16V_5A(self):
+        # Calibration which uses the highest precision for
+        # current measurement (0.1mA), at the expense of
+        # only supporting 16V at 5000mA max.
+
+        # VBUS_MAX = 16V
+        # VSHUNT_MAX = 0.08          (Assumes Gain 2, 80mV)
+        # RSHUNT = 0.02              (Resistor value in ohms)
+
+        # 1. Determine max possible current
+        # MaxPossible_I = VSHUNT_MAX / RSHUNT
+        # MaxPossible_I = 4.0A
+
+        # 2. Determine max expected current
+        # MaxExpected_I = 5.0A
+
+        # 3. Calculate possible range of LSBs (Min = 15-bit, Max = 12-bit)
+        # MinimumLSB = MaxExpected_I/32767
+        # MinimumLSB = 0.0001529              (uA per bit)
+        # MaximumLSB = MaxExpected_I/4096
+        # MaximumLSB = 0.0012207              (uA per bit)
+
+        # 4. Choose an LSB between the min and max values
+        #    (Preferrably a roundish number close to MinLSB)
+        # CurrentLSB = 0.00016 (50uA per bit)
+        self._current_lsb = 0.1524  # in milliamps
+
+        # 5. Compute the calibration register
+        # Cal = trunc (0.04096 / (Current_LSB * RSHUNT))
+        # Cal = 26869 (0x68f5)
+
+        self._cal_value = 26869
+
+        # 6. Calculate the power LSB
+        # PowerLSB = 20 * CurrentLSB
+        # PowerLSB = 0.001 (1mW per bit)
+        self._power_lsb = 0.003048
+
+        # 7. Compute the maximum current and shunt voltage values before overflow
+        #
+        # Max_Current = Current_LSB * 32767
+        # Max_Current = 1.63835A before overflow
+        #
+        # If Max_Current > Max_Possible_I then
+        #    Max_Current_Before_Overflow = MaxPossible_I
+        # Else
+        #    Max_Current_Before_Overflow = Max_Current
+        # End If
+        #
+        # Max_Current_Before_Overflow = MaxPossible_I
+        # Max_Current_Before_Overflow = 0.4
+        #
+        # Max_ShuntVoltage = Max_Current_Before_Overflow * RSHUNT
+        # Max_ShuntVoltage = 0.04V
+        #
+        # If Max_ShuntVoltage >= VSHUNT_MAX
+        #    Max_ShuntVoltage_Before_Overflow = VSHUNT_MAX
+        # Else
+        #    Max_ShuntVoltage_Before_Overflow = Max_ShuntVoltage
+        # End If
+        #
+        # Max_ShuntVoltage_Before_Overflow = VSHUNT_MAX
+        # Max_ShuntVoltage_Before_Overflow = 0.04V
+
+        # 8. Compute the Maximum Power
+        # MaximumPower = Max_Current_Before_Overflow * VBUS_MAX
+        # MaximumPower = 0.4 * 16V
+        # MaximumPower = 6.4W
+
+        # Set Calibration register to 'Cal' calcutated above
+        self._raw_calibration = self._cal_value
+
+        # Set Config register to take into account the settings above
+        self.bus_voltage_range = BusVoltageRange.RANGE_16V
+        self.gain = Gain.DIV_2_80MV
+        self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.mode = Mode.SANDBVOLT_CONTINUOUS
