@@ -476,3 +476,60 @@ class INA219:
         self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.mode = Mode.SANDBVOLT_CONTINUOUS
+
+    def set_calibration_16V_5A(self): # pylint: disable=invalid-name
+        """Configures to INA219 to be able to measure up to 16V and 5000mA of current. Counter
+           overflow occurs at 8.0A.
+
+           .. note:: These calculations assume a 0.02 ohm shunt resistor is present"""
+        # Calibration which uses the highest precision for
+        # current measurement (0.1mA), at the expense of
+        # only supporting 16V at 5000mA max.
+
+        # VBUS_MAX = 16V
+        # VSHUNT_MAX = 0.16          (Assumes Gain 3, 160mV)
+        # RSHUNT = 0.02              (Resistor value in ohms)
+
+        # 1. Determine max possible current
+        # MaxPossible_I = VSHUNT_MAX / RSHUNT
+        # MaxPossible_I = 8.0A
+
+        # 2. Determine max expected current
+        # MaxExpected_I = 5.0A
+
+        # 3. Calculate possible range of LSBs (Min = 15-bit, Max = 12-bit)
+        # MinimumLSB = MaxExpected_I/32767
+        # MinimumLSB = 0.0001529              (uA per bit)
+        # MaximumLSB = MaxExpected_I/4096
+        # MaximumLSB = 0.0012207              (uA per bit)
+
+        # 4. Choose an LSB between the min and max values
+        #    (Preferrably a roundish number close to MinLSB)
+        # CurrentLSB = 0.00016 (uA per bit)
+        self._current_lsb = 0.1524  # in milliamps
+
+        # 5. Compute the calibration register
+        # Cal = trunc (0.04096 / (Current_LSB * RSHUNT))
+        # Cal = 13434 (0x347a)
+
+        self._cal_value = 13434
+
+        # 6. Calculate the power LSB
+        # PowerLSB = 20 * CurrentLSB
+        # PowerLSB = 0.003 (3.048mW per bit)
+        self._power_lsb = 0.003048
+
+        # 7. Compute the maximum current and shunt voltage values before overflow
+        #
+        # 8. Compute the Maximum Power
+        #
+
+        # Set Calibration register to 'Cal' calcutated above
+        self._raw_calibration = self._cal_value
+
+        # Set Config register to take into account the settings above
+        self.bus_voltage_range = BusVoltageRange.RANGE_16V
+        self.gain = Gain.DIV_4_160MV
+        self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.mode = Mode.SANDBVOLT_CONTINUOUS
