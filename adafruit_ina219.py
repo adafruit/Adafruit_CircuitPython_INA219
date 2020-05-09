@@ -96,7 +96,7 @@ class ADCResolution:
 class Mode:
     """Constants for ``mode``"""
 
-    POWERDOW = 0x00  # power down
+    POWERDOWN = 0x00  # power down
     SVOLT_TRIGGERED = 0x01  # shunt voltage triggered
     BVOLT_TRIGGERED = 0x02  # bus voltage triggered
     SANDBVOLT_TRIGGERED = 0x03  # shunt and bus voltage triggered
