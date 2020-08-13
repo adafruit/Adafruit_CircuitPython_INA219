@@ -134,9 +134,9 @@ class INA219:
 
     # Basic API:
 
-    # INA219( i2c_bus, i2c_addr)  Create instance of INA219 sensor
+    # INA219( i2c_bus, addr)  Create instance of INA219 sensor
     #    :param i2c_bus          The I2C bus the INA219is connected to
-    #    :param i2c_addr (0x40)  Address of the INA219 on the bus (default 0x40)
+    #    :param addr (0x40)      Address of the INA219 on the bus (default 0x40)
 
     # shunt_voltage               RO : shunt voltage scaled to Volts
     # bus_voltage                 RO : bus voltage (V- to GND) scaled to volts (==load voltage)
