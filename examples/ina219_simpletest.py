@@ -1,4 +1,4 @@
-"""Sample code and test for adafruit_in219"""
+"""Sample code and test for adafruit_ina219"""
 
 import time
 import board
@@ -7,7 +7,7 @@ from adafruit_ina219 import ADCResolution, BusVoltageRange, INA219
 
 i2c_bus = board.I2C()
 
-ina219 = INA219(i2c_bus)
+ina219 = INA219(i2c_bus=i2c_bus, addr=0x40)
 
 print("ina219 test")
 
