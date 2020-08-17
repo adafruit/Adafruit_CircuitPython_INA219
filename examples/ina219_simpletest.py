@@ -1,4 +1,4 @@
-"""Sample code and test for adafruit_in219"""
+"""Sample code and test for adafruit_ina219"""
 
 import time
 import board
