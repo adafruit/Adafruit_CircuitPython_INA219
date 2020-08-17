@@ -7,7 +7,7 @@ from adafruit_ina219 import ADCResolution, BusVoltageRange, INA219
 
 i2c_bus = board.I2C()
 
-ina219 = INA219(i2c_bus=i2c_bus, addr=0x40)
+ina219 = INA219(i2c_bus)
 
 print("ina219 test")
 
