@@ -54,7 +54,6 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_INA219.git"
 
 # Bits
-# pylint: disable=bad-whitespace
 # pylint: disable=too-few-public-methods
 
 # Config Register (R/W)
