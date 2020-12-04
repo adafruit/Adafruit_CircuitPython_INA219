@@ -38,7 +38,7 @@ while True:
     print("Voltage (VIN-) : {:6.3f}   V".format(bus_voltage))
     print("Shunt Voltage  : {:8.5f} V".format(shunt_voltage))
     print("Shunt Current  : {:7.4f}  A".format(current / 1000))
-    print("Power Calc.    : {:8.5f} W".format(bus_voltage*(current/1000)))
+    print("Power Calc.    : {:8.5f} W".format(bus_voltage * (current / 1000)))
     print("Power Register : {:6.3f}   W".format(power))
     print("")
 
