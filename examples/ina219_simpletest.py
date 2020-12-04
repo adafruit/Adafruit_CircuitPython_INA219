@@ -42,4 +42,9 @@ while True:
     print("Power Register : {:6.3f}   W".format(power))
     print("")
 
+    # Check internal calculations haven't overflowed (doesn't detect ADC overflows)
+    if ina219.overflow:
+        print("Internal Math Overflow Detected!")
+        print("")
+
     time.sleep(2)
