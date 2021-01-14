@@ -1,24 +1,7 @@
-# The MIT License (MIT)
+# SPDX-FileCopyrightText: 2017 Dean Miller for Adafruit Industries
 #
-# Copyright (c) 2017 Dean Miller for Adafruit Industries
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# SPDX-License-Identifier: MIT
+
 """
 `adafruit_ina219`
 ====================================================
@@ -244,9 +227,9 @@ class INA219:
 
     def set_calibration_32V_2A(self):  # pylint: disable=invalid-name
         """Configures to INA219 to be able to measure up to 32V and 2A of current. Counter
-           overflow occurs at 3.2A.
+        overflow occurs at 3.2A.
 
-           ..note :: These calculations assume a 0.1 shunt ohm resistor is present
+        ..note :: These calculations assume a 0.1 shunt ohm resistor is present
         """
         # By default we use a pretty huge range for the input voltage,
         # which probably isn't the most appropriate choice for system
@@ -325,9 +308,9 @@ class INA219:
 
     def set_calibration_32V_1A(self):  # pylint: disable=invalid-name
         """Configures to INA219 to be able to measure up to 32V and 1A of current. Counter overflow
-           occurs at 1.3A.
+        occurs at 1.3A.
 
-           .. note:: These calculations assume a 0.1 ohm shunt resistor is present"""
+        .. note:: These calculations assume a 0.1 ohm shunt resistor is present"""
         # By default we use a pretty huge range for the input voltage,
         # which probably isn't the most appropriate choice for system
         # that don't use a lot of power.  But all of the calculations
@@ -407,9 +390,9 @@ class INA219:
 
     def set_calibration_16V_400mA(self):  # pylint: disable=invalid-name
         """Configures to INA219 to be able to measure up to 16V and 400mA of current. Counter
-           overflow occurs at 1.6A.
+        overflow occurs at 1.6A.
 
-           .. note:: These calculations assume a 0.1 ohm shunt resistor is present"""
+        .. note:: These calculations assume a 0.1 ohm shunt resistor is present"""
         # Calibration which uses the highest precision for
         # current measurement (0.1mA), at the expense of
         # only supporting 16V at 400mA max.
@@ -490,9 +473,9 @@ class INA219:
 
     def set_calibration_16V_5A(self):  # pylint: disable=invalid-name
         """Configures to INA219 to be able to measure up to 16V and 5000mA of current. Counter
-           overflow occurs at 8.0A.
+        overflow occurs at 8.0A.
 
-           .. note:: These calculations assume a 0.02 ohm shunt resistor is present"""
+        .. note:: These calculations assume a 0.02 ohm shunt resistor is present"""
         # Calibration which uses the highest precision for
         # current measurement (0.1mA), at the expense of
         # only supporting 16V at 5000mA max.
