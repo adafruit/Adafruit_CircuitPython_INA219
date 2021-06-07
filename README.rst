@@ -56,7 +56,7 @@ To install in a virtual environment in your current project:
 Usage Example
 =============
 
-see `example <https://github.com/adafruit/Adafruit_CircuitPython_INA219/blob/master/examples/ina219_simpletest.py>`_
+see `example <https://github.com/adafruit/Adafruit_CircuitPython_INA219/blob/main/examples/ina219_simpletest.py>`_
 
 Contributing
 ============
