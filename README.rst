@@ -58,6 +58,11 @@ Usage Example
 
 see `example <https://github.com/adafruit/Adafruit_CircuitPython_INA219/blob/main/examples/ina219_simpletest.py>`_
 
+Documentation
+=============
+
+API documentation for this library can be found on `Read the Docs <https://circuitpython.readthedocs.io/projects/ina219/en/latest/>`_.
+
 Contributing
 ============
 
