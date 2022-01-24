@@ -3,7 +3,7 @@ Introduction
 ============
 
 .. image:: https://readthedocs.org/projects/adafruit-circuitpython-ina219/badge/?version=latest
-    :target: https://circuitpython.readthedocs.io/projects/ina219/en/latest/
+    :target: https://docs.circuitpython.org/projects/ina219/en/latest/
     :alt: Documentation Status
 
 .. image :: https://img.shields.io/discord/327254708534116352.svg
@@ -61,7 +61,7 @@ see `example <https://github.com/adafruit/Adafruit_CircuitPython_INA219/blob/mai
 Documentation
 =============
 
-API documentation for this library can be found on `Read the Docs <https://circuitpython.readthedocs.io/projects/ina219/en/latest/>`_.
+API documentation for this library can be found on `Read the Docs <https://docs.circuitpython.org/projects/ina219/en/latest/>`_.
 
 Contributing
 ============
