@@ -229,7 +229,7 @@ class INA219:
         """Configures to INA219 to be able to measure up to 32V and 2A of current. Counter
         overflow occurs at 3.2A.
 
-        ..note :: These calculations assume a 0.1 shunt ohm resistor is present
+        .. note:: These calculations assume a 0.1 shunt ohm resistor is present
         """
         # By default we use a pretty huge range for the input voltage,
         # which probably isn't the most appropriate choice for system
