@@ -13,6 +13,10 @@ requires = [
 name = "adafruit-circuitpython-ina219"
 description = "CircuitPython library for INA219 high side DC current sensor."
 readme = "README.rst"
+authors = [
+    {name = "Adafruit Industries", email = "circuitpython@adafruit.com"}
+]
+urls = {Homepage = "https://github.com/adafruit/Adafruit_CircuitPython_INA219"} 
 keywords = [
     "adafruit",
     "blinka",
