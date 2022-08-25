@@ -33,6 +33,12 @@ from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
 from adafruit_register.i2c_bits import ROBits, RWBits
 from adafruit_register.i2c_bit import ROBit
 
+try:
+    import typing  # pylint: disable=unused-import
+    from busio import I2C
+except ImportError:
+    pass
+
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_INA219.git"
 
@@ -105,7 +111,7 @@ _REG_CALIBRATION = const(0x05)
 # pylint: enable=too-few-public-methods
 
 
-def _to_signed(num):
+def _to_signed(num: int) -> int:
     if num > 0x7FFF:
         num -= 0x10000
     return num
@@ -145,7 +151,7 @@ class INA219:
     # raw_current                 RO : Current register (not scaled)
     # calibration                 RW : calibration register (note: value is cached)
 
-    def __init__(self, i2c_bus, addr=0x40):
+    def __init__(self, i2c_bus: I2C, addr: int = 0x40) -> None:
         self.i2c_device = I2CDevice(i2c_bus, addr)
         self.i2c_addr = addr
 
@@ -179,32 +185,32 @@ class INA219:
     _raw_calibration = UnaryStruct(_REG_CALIBRATION, ">H")
 
     @property
-    def calibration(self):
+    def calibration(self) -> int:
         """Calibration register (cached value)"""
         return self._cal_value  # return cached value
 
     @calibration.setter
-    def calibration(self, cal_value):
+    def calibration(self, cal_value: int) -> None:
         self._cal_value = (
             cal_value  # value is cached for ``current`` and ``power`` properties
         )
         self._raw_calibration = self._cal_value
 
     @property
-    def shunt_voltage(self):
+    def shunt_voltage(self) -> float:
         """The shunt voltage (between V+ and V-) in Volts (so +-.327V)"""
         # The least signficant bit is 10uV which is 0.00001 volts
         return self.raw_shunt_voltage * 0.00001
 
     @property
-    def bus_voltage(self):
+    def bus_voltage(self) -> float:
         """The bus voltage (between V- and GND) in Volts"""
         # Shift to the right 3 to drop CNVR and OVF and multiply by LSB
         # Each least signficant bit is 4mV
         return self.raw_bus_voltage * 0.004
 
     @property
-    def current(self):
+    def current(self) -> float:
         """The current through the shunt resistor in milliamps."""
         # Sometimes a sharp load will reset the INA219, which will
         # reset the cal register, meaning CURRENT and POWER will
@@ -215,7 +221,7 @@ class INA219:
         return self.raw_current * self._current_lsb
 
     @property
-    def power(self):
+    def power(self) -> float:
         """The power through the load in Watt."""
         # Sometimes a sharp load will reset the INA219, which will
         # reset the cal register, meaning CURRENT and POWER will
@@ -225,7 +231,7 @@ class INA219:
         # Now we can safely read the CURRENT register!
         return self.raw_power * self._power_lsb
 
-    def set_calibration_32V_2A(self):  # pylint: disable=invalid-name
+    def set_calibration_32V_2A(self) -> None:  # pylint: disable=invalid-name
         """Configures to INA219 to be able to measure up to 32V and 2A of current. Counter
         overflow occurs at 3.2A.
 
@@ -306,7 +312,7 @@ class INA219:
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.mode = Mode.SANDBVOLT_CONTINUOUS
 
-    def set_calibration_32V_1A(self):  # pylint: disable=invalid-name
+    def set_calibration_32V_1A(self) -> None:  # pylint: disable=invalid-name
         """Configures to INA219 to be able to measure up to 32V and 1A of current. Counter overflow
         occurs at 1.3A.
 
@@ -388,7 +394,7 @@ class INA219:
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.mode = Mode.SANDBVOLT_CONTINUOUS
 
-    def set_calibration_16V_400mA(self):  # pylint: disable=invalid-name
+    def set_calibration_16V_400mA(self) -> None:  # pylint: disable=invalid-name
         """Configures to INA219 to be able to measure up to 16V and 400mA of current. Counter
         overflow occurs at 1.6A.
 
@@ -471,7 +477,7 @@ class INA219:
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.mode = Mode.SANDBVOLT_CONTINUOUS
 
-    def set_calibration_16V_5A(self):  # pylint: disable=invalid-name
+    def set_calibration_16V_5A(self) -> None:  # pylint: disable=invalid-name
         """Configures to INA219 to be able to measure up to 16V and 5000mA of current. Counter
         overflow occurs at 8.0A.
 
