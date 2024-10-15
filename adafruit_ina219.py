@@ -232,304 +232,282 @@ class INA219:
         return self.raw_power * self._power_lsb
 
     def set_calibration_32V_2A(self) -> None:  # pylint: disable=invalid-name
-        """Configures to INA219 to be able to measure up to 32V and 2A of current. Counter
-        overflow occurs at 3.2A.
+        """Configures to INA219 to be able to measure up to 32V and 2A of current. Actual max current: 3.2 A.
 
         .. note:: These calculations assume a 0.1 shunt ohm resistor is present
         """
-        # By default we use a pretty huge range for the input voltage,
-        # which probably isn't the most appropriate choice for system
-        # that don't use a lot of power.  But all of the calculations
-        # are shown below if you want to change the settings.  You will
-        # also need to change any relevant register settings, such as
-        # setting the VBUS_MAX to 16V instead of 32V, etc.
+        # 1. Determine max possible bus voltage, 16 or 32 V
+        #self.bus_voltage_range = BusVoltageRange.RANGE_16V
+        self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        
+        # 2. Determine the installed shunt resistor value
+        # By default, a 0.1 Ohm resistor is installed
+        RSHUNT = 0.1  # (Resistor value in ohms)
+        
+        # 2. Estimate the max expected current
+        # MaxExpected_I = 2 A
 
-        # VBUS_MAX = 32V             (Assumes 32V, can also be set to 16V)
-        # VSHUNT_MAX = 0.32          (Assumes Gain 8, 320mV, can also be 0.16, 0.08, 0.04)
-        # RSHUNT = 0.1               (Resistor value in ohms)
+        # 3. Calculate maximum possible current for each gain value
+        # MaxI_gain1_40mV = 0.04 / RSHUNT = 0.4 A
+        # MaxI_gain2_80mV = 0.08 / RSHUNT = 0.8 A
+        # MaxI_gain4_160mV = 0.16 / RSHUNT = 1.6 A
+        # MaxI_gain8_320mV = 0.32 / RSHUNT = 3.2 A
 
-        # 1. Determine max possible current
-        # MaxPossible_I = VSHUNT_MAX / RSHUNT
-        # MaxPossible_I = 3.2A
-
-        # 2. Determine max expected current
-        # MaxExpected_I = 2.0A
-
-        # 3. Calculate possible range of LSBs (Min = 15-bit, Max = 12-bit)
-        # MinimumLSB = MaxExpected_I/32767
-        # MinimumLSB = 0.000061              (61uA per bit)
-        # MaximumLSB = MaxExpected_I/4096
-        # MaximumLSB = 0,000488              (488uA per bit)
-
-        # 4. Choose an LSB between the min and max values
-        #    (Preferrably a roundish number close to MinLSB)
-        # CurrentLSB = 0.0001 (100uA per bit)
-        self._current_lsb = 0.1  # Current LSB = 100uA per bit
-
-        # 5. Compute the calibration register
-        # Cal = trunc (0.04096 / (Current_LSB * RSHUNT))
-        # Cal = 4096 (0x1000)
-
-        self._cal_value = 4096
-
-        # 6. Calculate the power LSB
-        # PowerLSB = 20 * CurrentLSB
-        # PowerLSB = 0.002 (2mW per bit)
-        self._power_lsb = 0.002  # Power LSB = 2mW per bit
-
-        # 7. Compute the maximum current and shunt voltage values before overflow
+        # 4. Evaluate whether to replace the shunt resistor
         #
-        # Max_Current = Current_LSB * 32767
-        # Max_Current = 3.2767A before overflow
+        # If MaxExpected_I << MaxI_gain1_40mV, expect poor resolution. 
+        # If a good resolution is important for you, consider de-soldering the 0.1 Ohm shunt resistor and soldering another one with a higher resistance.
         #
-        # If Max_Current > Max_Possible_I then
-        #    Max_Current_Before_Overflow = MaxPossible_I
-        # Else
-        #    Max_Current_Before_Overflow = Max_Current
-        # End If
-        #
-        # Max_ShuntVoltage = Max_Current_Before_Overflow * RSHUNT
-        # Max_ShuntVoltage = 0.32V
-        #
-        # If Max_ShuntVoltage >= VSHUNT_MAX
-        #    Max_ShuntVoltage_Before_Overflow = VSHUNT_MAX
-        # Else
-        #    Max_ShuntVoltage_Before_Overflow = Max_ShuntVoltage
-        # End If
+        # If MaxExpected_I > MaxI_gain8_320mV, consider soldering a shunt resistor with a smaller resistance.
+        # Either replacing the one currently in place or soldering another one on top (in parallel) of the current one.
+        # Remember that the maximum voltage across the shunt resistor that the INA219 chip can stand is 26 V
+        
+        # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
+        #self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        #self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        #self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        self.gain = Gain.DIV_8_320MV   # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+
+        # 6. Select a calibration value
+        # Values below 4096 will harm the resolution
+        # 
+        # Too high values will limit the maximum measurable current without any advantage (causing an overflow to happen earlier)
+        # (above 32768 for gain 1, above 16384 for gain 2, above 8192 for gain 4, above 4096 for gain 8)
+        # 
+        # Use a value different from 4096 only if you are actually calibrating the board versus a reliable current measured with a better equipment.
+        self.calibration = 4096
+
+        # 6. Calculate the current LSB (least significant bit) value in mA
+        # Current_LSB = 0.04096 / (calibration * RSHUNT) = 0.04096 / (4096 * 0.1) = 0.0001 A
+        self._current_lsb = 1000 * 0.04096 / (self.calibration * RSHUNT)  # the "1000 *" is for having the output in milliAmps
+
+        # 7. Calculate the power LSB in W
+        # Power_LSB = 20 * CurrentLSB in A = 20 * 0.0001 = 0.002 (2 mW per bit)
+        self._power_lsb = 20 * self._current_lsb / 1000  # in Watts. The "/ 1000" is for converting mA to A
 
         # 8. Compute the Maximum Power
-        # MaximumPower = Max_Current_Before_Overflow * VBUS_MAX
-        # MaximumPower = 3.2 * 32V
-        # MaximumPower = 102.4W
+        # Multiplying the maximum possible bus voltage (16 or 32 V) by the maximum current for the chosen gain and resistor:
+        # MaximumPower = 32 V * MaxI_gain8_320mV = 32 V * 3.2 A = 102.4 W
 
-        # Set Calibration register to 'Cal' calculated above
-        self._raw_calibration = self._cal_value
-
-        # Set Config register to take into account the settings above
-        self.bus_voltage_range = BusVoltageRange.RANGE_32V
-        self.gain = Gain.DIV_8_320MV
+        # 9. Select the resolution
+        # Increasing the bits will increase the measurement time but will give better resolution
+        # Increasing the samples to be averaged will further increase the measurement time resulting in less noisy measurements
         self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+
+        # 10. Select the operation mode
+        # With continuous mode, the a new reading will be performed as soon as the previous one ended
         self.mode = Mode.SANDBVOLT_CONTINUOUS
+        # With triggered mode, a new measurement is performed each time the triggered mode is configured (the following line works both as configuration and as trigger)
+        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # In order to know if the triggered measurement is complete, the status of conversion_ready can be checked
 
     def set_calibration_32V_1A(self) -> None:  # pylint: disable=invalid-name
-        """Configures to INA219 to be able to measure up to 32V and 1A of current. Counter overflow
-        occurs at 1.3A.
+        """Configures to INA219 to be able to measure up to 32V and 1A of current. Actual max current: 1.6 A.
 
         .. note:: These calculations assume a 0.1 ohm shunt resistor is present"""
-        # By default we use a pretty huge range for the input voltage,
-        # which probably isn't the most appropriate choice for system
-        # that don't use a lot of power.  But all of the calculations
-        # are shown below if you want to change the settings.  You will
-        # also need to change any relevant register settings, such as
-        # setting the VBUS_MAX to 16V instead of 32V, etc.
+        # 1. Determine max possible bus voltage, 16 or 32 V
+        #self.bus_voltage_range = BusVoltageRange.RANGE_16V
+        self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        
+        # 2. Determine the installed shunt resistor value
+        # By default, a 0.1 Ohm resistor is installed
+        RSHUNT = 0.1  # (Resistor value in ohms)
+        
+        # 2. Estimate the max expected current
+        # MaxExpected_I = 1 A
 
-        # VBUS_MAX = 32V        (Assumes 32V, can also be set to 16V)
-        # VSHUNT_MAX = 0.32    (Assumes Gain 8, 320mV, can also be 0.16, 0.08, 0.04)
-        # RSHUNT = 0.1            (Resistor value in ohms)
+        # 3. Calculate maximum possible current for each gain value
+        # MaxI_gain1_40mV = 0.04 / RSHUNT = 0.4 A
+        # MaxI_gain2_80mV = 0.08 / RSHUNT = 0.8 A
+        # MaxI_gain4_160mV = 0.16 / RSHUNT = 1.6 A
+        # MaxI_gain8_320mV = 0.32 / RSHUNT = 3.2 A
 
-        # 1. Determine max possible current
-        # MaxPossible_I = VSHUNT_MAX / RSHUNT
-        # MaxPossible_I = 3.2A
-
-        # 2. Determine max expected current
-        # MaxExpected_I = 1.0A
-
-        # 3. Calculate possible range of LSBs (Min = 15-bit, Max = 12-bit)
-        # MinimumLSB = MaxExpected_I/32767
-        # MinimumLSB = 0.0000305             (30.5uA per bit)
-        # MaximumLSB = MaxExpected_I/4096
-        # MaximumLSB = 0.000244              (244uA per bit)
-
-        # 4. Choose an LSB between the min and max values
-        #    (Preferrably a roundish number close to MinLSB)
-        # CurrentLSB = 0.0000400 (40uA per bit)
-        self._current_lsb = 0.04  # In milliamps
-
-        # 5. Compute the calibration register
-        # Cal = trunc (0.04096 / (Current_LSB * RSHUNT))
-        # Cal = 10240 (0x2800)
-
-        self._cal_value = 10240
-
-        # 6. Calculate the power LSB
-        # PowerLSB = 20 * CurrentLSB
-        # PowerLSB = 0.0008 (800uW per bit)
-        self._power_lsb = 0.0008
-
-        # 7. Compute the maximum current and shunt voltage values before overflow
+        # 4. Evaluate whether to replace the shunt resistor
         #
-        # Max_Current = Current_LSB * 32767
-        # Max_Current = 1.31068A before overflow
+        # If MaxExpected_I << MaxI_gain1_40mV, expect poor resolution. 
+        # If a good resolution is important for you, consider de-soldering the 0.1 Ohm shunt resistor and soldering another one with a higher resistance.
         #
-        # If Max_Current > Max_Possible_I then
-        #    Max_Current_Before_Overflow = MaxPossible_I
-        # Else
-        #    Max_Current_Before_Overflow = Max_Current
-        # End If
-        #
-        # ... In this case, we're good though since Max_Current is less than MaxPossible_I
-        #
-        # Max_ShuntVoltage = Max_Current_Before_Overflow * RSHUNT
-        # Max_ShuntVoltage = 0.131068V
-        #
-        # If Max_ShuntVoltage >= VSHUNT_MAX
-        #    Max_ShuntVoltage_Before_Overflow = VSHUNT_MAX
-        # Else
-        #    Max_ShuntVoltage_Before_Overflow = Max_ShuntVoltage
-        # End If
+        # If MaxExpected_I > MaxI_gain8_320mV, consider soldering a shunt resistor with a smaller resistance.
+        # Either replacing the one currently in place or soldering another one on top (in parallel) of the current one.
+        # Remember that the maximum voltage across the shunt resistor that the INA219 chip can stand is 26 V
+        
+        # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
+        #self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        #self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        self.gain = Gain.DIV_4_160MV   # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        #self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+
+        # 6. Select a calibration value
+        # Values below 4096 will harm the resolution
+        # 
+        # Too high values will limit the maximum measurable current without any advantage (causing an overflow to happen earlier)
+        # (above 32768 for gain 1, above 16384 for gain 2, above 8192 for gain 4, above 4096 for gain 8)
+        # 
+        # Use a value different from 4096 only if you are actually calibrating the board versus a reliable current measured with a better equipment.
+        self.calibration = 4096
+
+        # 6. Calculate the current LSB (least significant bit) value in mA
+        # Current_LSB = 0.04096 / (calibration * RSHUNT) = 0.04096 / (4096 * 0.1) = 0.0001 A
+        self._current_lsb = 1000 * 0.04096 / (self.calibration * RSHUNT)  # the "1000 *" is for having the output in milliAmps
+
+        # 7. Calculate the power LSB in W
+        # Power_LSB = 20 * CurrentLSB in A = 20 * 0.0001 = 0.002 (2 mW per bit)
+        self._power_lsb = 20 * self._current_lsb / 1000  # in Watts. The "/ 1000" is for converting mA to A
 
         # 8. Compute the Maximum Power
-        # MaximumPower = Max_Current_Before_Overflow * VBUS_MAX
-        # MaximumPower = 1.31068 * 32V
-        # MaximumPower = 41.94176W
+        # Multiplying the maximum possible bus voltage (16 or 32 V) by the maximum current for the chosen gain and resistor:
+        # MaximumPower = 32 V * MaxI_gain4_160mV = 32 V * 1.6 A = 51.2 W
 
-        # Set Calibration register to 'Cal' calculated above
-        self._raw_calibration = self._cal_value
-
-        # Set Config register to take into account the settings above
-        self.bus_voltage_range = BusVoltageRange.RANGE_32V
-        self.gain = Gain.DIV_8_320MV
+        # 9. Select the resolution
+        # Increasing the bits will increase the measurement time but will give better resolution
+        # Increasing the samples to be averaged will further increase the measurement time resulting in less noisy measurements
         self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+
+        # 10. Select the operation mode
+        # With continuous mode, the a new reading will be performed as soon as the previous one ended
         self.mode = Mode.SANDBVOLT_CONTINUOUS
+        # With triggered mode, a new measurement is performed each time the triggered mode is configured (the following line works both as configuration and as trigger)
+        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # In order to know if the triggered measurement is complete, the status of conversion_ready can be checked
 
     def set_calibration_16V_400mA(self) -> None:  # pylint: disable=invalid-name
-        """Configures to INA219 to be able to measure up to 16V and 400mA of current. Counter
-        overflow occurs at 1.6A.
+        """Configures to INA219 to be able to measure up to 16V and 400mA of current.
 
         .. note:: These calculations assume a 0.1 ohm shunt resistor is present"""
-        # Calibration which uses the highest precision for
-        # current measurement (0.1mA), at the expense of
-        # only supporting 16V at 400mA max.
+        # 1. Determine max possible bus voltage, 16 or 32 V
+        self.bus_voltage_range = BusVoltageRange.RANGE_16V
+        #self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        
+        # 2. Determine the installed shunt resistor value
+        # By default, a 0.1 Ohm resistor is installed
+        RSHUNT = 0.1  # (Resistor value in ohms)
+        
+        # 2. Estimate the max expected current
+        # MaxExpected_I = 0.4 A
 
-        # VBUS_MAX = 16V
-        # VSHUNT_MAX = 0.04          (Assumes Gain 1, 40mV)
-        # RSHUNT = 0.1               (Resistor value in ohms)
+        # 3. Calculate maximum possible current for each gain value
+        # MaxI_gain1_40mV = 0.04 / RSHUNT = 0.4 A
+        # MaxI_gain2_80mV = 0.08 / RSHUNT = 0.8 A
+        # MaxI_gain4_160mV = 0.16 / RSHUNT = 1.6 A
+        # MaxI_gain8_320mV = 0.32 / RSHUNT = 3.2 A
 
-        # 1. Determine max possible current
-        # MaxPossible_I = VSHUNT_MAX / RSHUNT
-        # MaxPossible_I = 0.4A
-
-        # 2. Determine max expected current
-        # MaxExpected_I = 0.4A
-
-        # 3. Calculate possible range of LSBs (Min = 15-bit, Max = 12-bit)
-        # MinimumLSB = MaxExpected_I/32767
-        # MinimumLSB = 0.0000122              (12uA per bit)
-        # MaximumLSB = MaxExpected_I/4096
-        # MaximumLSB = 0.0000977              (98uA per bit)
-
-        # 4. Choose an LSB between the min and max values
-        #    (Preferrably a roundish number close to MinLSB)
-        # CurrentLSB = 0.00005 (50uA per bit)
-        self._current_lsb = 0.05  # in milliamps
-
-        # 5. Compute the calibration register
-        # Cal = trunc (0.04096 / (Current_LSB * RSHUNT))
-        # Cal = 8192 (0x2000)
-
-        self._cal_value = 8192
-
-        # 6. Calculate the power LSB
-        # PowerLSB = 20 * CurrentLSB
-        # PowerLSB = 0.001 (1mW per bit)
-        self._power_lsb = 0.001
-
-        # 7. Compute the maximum current and shunt voltage values before overflow
+        # 4. Evaluate whether to replace the shunt resistor
         #
-        # Max_Current = Current_LSB * 32767
-        # Max_Current = 1.63835A before overflow
+        # If MaxExpected_I << MaxI_gain1_40mV, expect poor resolution. 
+        # If a good resolution is important for you, consider de-soldering the 0.1 Ohm shunt resistor and soldering another one with a higher resistance.
         #
-        # If Max_Current > Max_Possible_I then
-        #    Max_Current_Before_Overflow = MaxPossible_I
-        # Else
-        #    Max_Current_Before_Overflow = Max_Current
-        # End If
-        #
-        # Max_Current_Before_Overflow = MaxPossible_I
-        # Max_Current_Before_Overflow = 0.4
-        #
-        # Max_ShuntVoltage = Max_Current_Before_Overflow * RSHUNT
-        # Max_ShuntVoltage = 0.04V
-        #
-        # If Max_ShuntVoltage >= VSHUNT_MAX
-        #    Max_ShuntVoltage_Before_Overflow = VSHUNT_MAX
-        # Else
-        #    Max_ShuntVoltage_Before_Overflow = Max_ShuntVoltage
-        # End If
-        #
-        # Max_ShuntVoltage_Before_Overflow = VSHUNT_MAX
-        # Max_ShuntVoltage_Before_Overflow = 0.04V
+        # If MaxExpected_I > MaxI_gain8_320mV, consider soldering a shunt resistor with a smaller resistance.
+        # Either replacing the one currently in place or soldering another one on top (in parallel) of the current one.
+        # Remember that the maximum voltage across the shunt resistor that the INA219 chip can stand is 26 V
+        
+        # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
+        self.gain = Gain.DIV_1_40MV    # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        #self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        #self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        #self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+
+        # 6. Select a calibration value
+        # Values below 4096 will harm the resolution
+        # 
+        # Too high values will limit the maximum measurable current without any advantage (causing an overflow to happen earlier)
+        # (above 32768 for gain 1, above 16384 for gain 2, above 8192 for gain 4, above 4096 for gain 8)
+        # 
+        # Use a value different from 4096 only if you are actually calibrating the board versus a reliable current measured with a better equipment.
+        self.calibration = 4096
+
+        # 6. Calculate the current LSB (least significant bit) value in mA
+        # Current_LSB = 0.04096 / (calibration * RSHUNT) = 0.04096 / (4096 * 0.1) = 0.0001 A
+        self._current_lsb = 1000 * 0.04096 / (self.calibration * RSHUNT)  # the "1000 *" is for having the output in milliAmps
+
+        # 7. Calculate the power LSB in W
+        # Power_LSB = 20 * CurrentLSB in A = 20 * 0.0001 = 0.002 (2 mW per bit)
+        self._power_lsb = 20 * self._current_lsb / 1000  # in Watts. The "/ 1000" is for converting mA to A
 
         # 8. Compute the Maximum Power
-        # MaximumPower = Max_Current_Before_Overflow * VBUS_MAX
-        # MaximumPower = 0.4 * 16V
-        # MaximumPower = 6.4W
+        # Multiplying the maximum possible bus voltage (16 or 32 V) by the maximum current for the chosen gain and resistor:
+        # MaximumPower = 16 V * MaxI_gain1_40mV = 16 V * 0.4 A = 6.4 W
 
-        # Set Calibration register to 'Cal' calculated above
-        self._raw_calibration = self._cal_value
-
-        # Set Config register to take into account the settings above
-        self.bus_voltage_range = BusVoltageRange.RANGE_16V
-        self.gain = Gain.DIV_1_40MV
+        # 9. Select the resolution
+        # Increasing the bits will increase the measurement time but will give better resolution
+        # Increasing the samples to be averaged will further increase the measurement time resulting in less noisy measurements
         self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+
+        # 10. Select the operation mode
+        # With continuous mode, the a new reading will be performed as soon as the previous one ended
         self.mode = Mode.SANDBVOLT_CONTINUOUS
+        # With triggered mode, a new measurement is performed each time the triggered mode is configured (the following line works both as configuration and as trigger)
+        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # In order to know if the triggered measurement is complete, the status of conversion_ready can be checked
 
     def set_calibration_16V_5A(self) -> None:  # pylint: disable=invalid-name
-        """Configures to INA219 to be able to measure up to 16V and 5000mA of current. Counter
-        overflow occurs at 8.0A.
+        """Configures to INA219 to be able to measure up to 16V and 5000mA of current. Actual max current: 8 A.
 
         .. note:: These calculations assume a 0.02 ohm shunt resistor is present"""
-        # Calibration which uses the highest precision for
-        # current measurement (0.1mA), at the expense of
-        # only supporting 16V at 5000mA max.
-
-        # VBUS_MAX = 16V
-        # VSHUNT_MAX = 0.16          (Assumes Gain 3, 160mV)
-        # RSHUNT = 0.02              (Resistor value in ohms)
-
-        # 1. Determine max possible current
-        # MaxPossible_I = VSHUNT_MAX / RSHUNT
-        # MaxPossible_I = 8.0A
-
-        # 2. Determine max expected current
-        # MaxExpected_I = 5.0A
-
-        # 3. Calculate possible range of LSBs (Min = 15-bit, Max = 12-bit)
-        # MinimumLSB = MaxExpected_I/32767
-        # MinimumLSB = 0.0001529              (uA per bit)
-        # MaximumLSB = MaxExpected_I/4096
-        # MaximumLSB = 0.0012207              (uA per bit)
-
-        # 4. Choose an LSB between the min and max values
-        #    (Preferrably a roundish number close to MinLSB)
-        # CurrentLSB = 0.00016 (uA per bit)
-        self._current_lsb = 0.1524  # in milliamps
-
-        # 5. Compute the calibration register
-        # Cal = trunc (0.04096 / (Current_LSB * RSHUNT))
-        # Cal = 13434 (0x347a)
-
-        self._cal_value = 13434
-
-        # 6. Calculate the power LSB
-        # PowerLSB = 20 * CurrentLSB
-        # PowerLSB = 0.003 (3.048mW per bit)
-        self._power_lsb = 0.003048
-
-        # 7. Compute the maximum current and shunt voltage values before overflow
-        #
-        # 8. Compute the Maximum Power
-        #
-
-        # Set Calibration register to 'Cal' calcutated above
-        self._raw_calibration = self._cal_value
-
-        # Set Config register to take into account the settings above
+        # 1. Determine max possible bus voltage, 16 or 32 V
         self.bus_voltage_range = BusVoltageRange.RANGE_16V
-        self.gain = Gain.DIV_4_160MV
+        #self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        
+        # 2. Determine the installed shunt resistor value
+        # By default, a 0.1 Ohm resistor is installed
+        RSHUNT = 0.02  # (Resistor value in ohms)
+        
+        # 2. Estimate the max expected current
+        # MaxExpected_I = 5 A
+
+        # 3. Calculate maximum possible current for each gain value
+        # MaxI_gain1_40mV = 0.04 / RSHUNT = 2 A
+        # MaxI_gain2_80mV = 0.08 / RSHUNT = 4 A
+        # MaxI_gain4_160mV = 0.16 / RSHUNT = 8 A
+        # MaxI_gain8_320mV = 0.32 / RSHUNT = 16 A
+
+        # 4. Evaluate whether to replace the shunt resistor
+        #
+        # If MaxExpected_I << MaxI_gain1_40mV, expect poor resolution. 
+        # If a good resolution is important for you, consider de-soldering the 0.1 Ohm shunt resistor and soldering another one with a higher resistance.
+        #
+        # If MaxExpected_I > MaxI_gain8_320mV, consider soldering a shunt resistor with a smaller resistance.
+        # Either replacing the one currently in place or soldering another one on top (in parallel) of the current one.
+        # Remember that the maximum voltage across the shunt resistor that the INA219 chip can stand is 26 V
+        
+        # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
+        #self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        #self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        self.gain = Gain.DIV_4_160MV   # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        #self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+
+        # 6. Select a calibration value
+        # Values below 4096 will harm the resolution
+        # 
+        # Too high values will limit the maximum measurable current without any advantage (causing an overflow to happen earlier)
+        # (above 32768 for gain 1, above 16384 for gain 2, above 8192 for gain 4, above 4096 for gain 8)
+        # 
+        # Use a value different from 4096 only if you are actually calibrating the board versus a reliable current measured with a better equipment.
+        self.calibration = 4096
+
+        # 6. Calculate the current LSB (least significant bit) value in mA
+        # Current_LSB = 0.04096 / (calibration * RSHUNT) = 0.04096 / (4096 * 0.02) = 0.0005 A
+        self._current_lsb = 1000 * 0.04096 / (self.calibration * RSHUNT)  # the "1000 *" is for having the output in milliAmps
+
+        # 7. Calculate the power LSB in W
+        # Power_LSB = 20 * CurrentLSB in A = 20 * 0.0005 = 0.01 (10 mW per bit)
+        self._power_lsb = 20 * self._current_lsb / 1000  # in Watts. The "/ 1000" is for converting mA to A
+
+        # 8. Compute the Maximum Power
+        # Multiplying the maximum possible bus voltage (16 or 32 V) by the maximum current for the chosen gain and resistor:
+        # MaximumPower = 16 V * MaxI_gain4_160mV = 16 V * 8 A = 128 W
+
+        # 9. Select the resolution
+        # Increasing the bits will increase the measurement time but will give better resolution
+        # Increasing the samples to be averaged will further increase the measurement time resulting in less noisy measurements
         self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+
+        # 10. Select the operation mode
+        # With continuous mode, the a new reading will be performed as soon as the previous one ended
         self.mode = Mode.SANDBVOLT_CONTINUOUS
+        # With triggered mode, a new measurement is performed each time the triggered mode is configured (the following line works both as configuration and as trigger)
+        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # In order to know if the triggered measurement is complete, the status of conversion_ready can be checked
