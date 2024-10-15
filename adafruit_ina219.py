@@ -511,3 +511,143 @@ class INA219:
         # With triggered mode, a new measurement is performed each time the triggered mode is configured (the following line works both as configuration and as trigger)
         #self.mode = Mode.SANDBVOLT_TRIGGERED
         # In order to know if the triggered measurement is complete, the status of conversion_ready can be checked
+
+    def set_calibration_16V_80mA(self) -> None:  # pylint: disable=invalid-name
+        """Configures to INA219 to be able to measure up to 16V and 80mA of current.
+
+        .. note:: These calculations assume a 1 ohm shunt resistor is present"""
+        # 1. Determine max possible bus voltage, 16 or 32 V
+        self.bus_voltage_range = BusVoltageRange.RANGE_16V
+        #self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        
+        # 2. Determine the installed shunt resistor value
+        # By default, a 0.1 Ohm resistor is installed
+        RSHUNT = 1  # (Resistor value in ohms)
+        
+        # 2. Estimate the max expected current
+        # MaxExpected_I = 0.08 A
+
+        # 3. Calculate maximum possible current for each gain value
+        # MaxI_gain1_40mV = 0.04 / RSHUNT = 0.04 A
+        # MaxI_gain2_80mV = 0.08 / RSHUNT = 0.08 A
+        # MaxI_gain4_160mV = 0.16 / RSHUNT = 0.16 A
+        # MaxI_gain8_320mV = 0.32 / RSHUNT = 0.32 A
+
+        # 4. Evaluate whether to replace the shunt resistor
+        #
+        # If MaxExpected_I << MaxI_gain1_40mV, expect poor resolution. 
+        # If a good resolution is important for you, consider de-soldering the 0.1 Ohm shunt resistor and soldering another one with a higher resistance.
+        #
+        # If MaxExpected_I > MaxI_gain8_320mV, consider soldering a shunt resistor with a smaller resistance.
+        # Either replacing the one currently in place or soldering another one on top (in parallel) of the current one.
+        # Remember that the maximum voltage across the shunt resistor that the INA219 chip can stand is 26 V
+        
+        # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
+        #self.gain = Gain.DIV_1_40MV    # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        #self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        #self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+
+        # 6. Select a calibration value
+        # Values below 4096 will harm the resolution
+        # 
+        # Too high values will limit the maximum measurable current without any advantage (causing an overflow to happen earlier)
+        # (above 32768 for gain 1, above 16384 for gain 2, above 8192 for gain 4, above 4096 for gain 8)
+        # 
+        # Use a value different from 4096 only if you are actually calibrating the board versus a reliable current measured with a better equipment.
+        self.calibration = 4096
+
+        # 6. Calculate the current LSB (least significant bit) value in mA
+        # Current_LSB = 0.04096 / (calibration * RSHUNT) = 0.04096 / (4096 * 1) = 0.00001 A
+        self._current_lsb = 1000 * 0.04096 / (self.calibration * RSHUNT)  # the "1000 *" is for having the output in milliAmps
+
+        # 7. Calculate the power LSB in W
+        # Power_LSB = 20 * Current_LSB in A = 20 * 0.00001 = 0.0002 W (0.2 mW per bit)
+        self._power_lsb = 20 * self._current_lsb / 1000  # in Watts. The "/ 1000" is for converting mA to A
+
+        # 8. Compute the Maximum Power
+        # Multiplying the maximum possible bus voltage (16 or 32 V) by the maximum current for the chosen gain and resistor:
+        # MaximumPower = 16 V * MaxI_gain2_80mV = 16 V * 0.08 A = 1.28 W
+
+        # 9. Select the resolution
+        # Increasing the bits will increase the measurement time but will give better resolution
+        # Increasing the samples to be averaged will further increase the measurement time resulting in less noisy measurements
+        self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+
+        # 10. Select the operation mode
+        # With continuous mode, the a new reading will be performed as soon as the previous one ended
+        self.mode = Mode.SANDBVOLT_CONTINUOUS
+        # With triggered mode, a new measurement is performed each time the triggered mode is configured (the following line works both as configuration and as trigger)
+        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # In order to know if the triggered measurement is complete, the status of conversion_ready can be checked
+    
+    def set_calibration_16V_4mA(self) -> None:  # pylint: disable=invalid-name
+        """Configures to INA219 to be able to measure up to 16V and 4mA of current.
+
+        .. note:: These calculations assume a 10 ohm shunt resistor is present"""
+        # 1. Determine max possible bus voltage, 16 or 32 V
+        self.bus_voltage_range = BusVoltageRange.RANGE_16V
+        #self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        
+        # 2. Determine the installed shunt resistor value
+        # By default, a 0.1 Ohm resistor is installed
+        RSHUNT = 10  # (Resistor value in ohms)
+        
+        # 2. Estimate the max expected current
+        # MaxExpected_I = 0.004 A
+
+        # 3. Calculate maximum possible current for each gain value
+        # MaxI_gain1_40mV = 0.04 / RSHUNT = 0.004 A
+        # MaxI_gain2_80mV = 0.08 / RSHUNT = 0.008 A
+        # MaxI_gain4_160mV = 0.16 / RSHUNT = 0.016 A
+        # MaxI_gain8_320mV = 0.32 / RSHUNT = 0.032 A
+
+        # 4. Evaluate whether to replace the shunt resistor
+        #
+        # If MaxExpected_I << MaxI_gain1_40mV, expect poor resolution. 
+        # If a good resolution is important for you, consider de-soldering the 0.1 Ohm shunt resistor and soldering another one with a higher resistance.
+        #
+        # If MaxExpected_I > MaxI_gain8_320mV, consider soldering a shunt resistor with a smaller resistance.
+        # Either replacing the one currently in place or soldering another one on top (in parallel) of the current one.
+        # Remember that the maximum voltage across the shunt resistor that the INA219 chip can stand is 26 V
+        
+        # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
+        self.gain = Gain.DIV_1_40MV    # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        #self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        #self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        #self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+
+        # 6. Select a calibration value
+        # Values below 4096 will harm the resolution
+        # 
+        # Too high values will limit the maximum measurable current without any advantage (causing an overflow to happen earlier)
+        # (above 32768 for gain 1, above 16384 for gain 2, above 8192 for gain 4, above 4096 for gain 8)
+        # 
+        # Use a value different from 4096 only if you are actually calibrating the board versus a reliable current measured with a better equipment.
+        self.calibration = 4096
+
+        # 6. Calculate the current LSB (least significant bit) value in mA
+        # Current_LSB = 0.04096 / (calibration * RSHUNT) = 0.04096 / (4096 * 10) = 0.000001 A
+        self._current_lsb = 1000 * 0.04096 / (self.calibration * RSHUNT)  # the "1000 *" is for having the output in milliAmps
+
+        # 7. Calculate the power LSB in W
+        # Power_LSB = 20 * Current_LSB in A = 20 * 0.000001 = 0.00002 W (0.02 mW per bit)
+        self._power_lsb = 20 * self._current_lsb / 1000  # in Watts. The "/ 1000" is for converting mA to A
+
+        # 8. Compute the Maximum Power
+        # Multiplying the maximum possible bus voltage (16 or 32 V) by the maximum current for the chosen gain and resistor:
+        # MaximumPower = 16 V * MaxI_gain1_40mV = 16 V * 0.004 A = 0.064 W
+
+        # 9. Select the resolution
+        # Increasing the bits will increase the measurement time but will give better resolution
+        # Increasing the samples to be averaged will further increase the measurement time resulting in less noisy measurements
+        self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+        self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
+
+        # 10. Select the operation mode
+        # With continuous mode, the a new reading will be performed as soon as the previous one ended
+        self.mode = Mode.SANDBVOLT_CONTINUOUS
+        # With triggered mode, a new measurement is performed each time the triggered mode is configured (the following line works both as configuration and as trigger)
+        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # In order to know if the triggered measurement is complete, the status of conversion_ready can be checked
