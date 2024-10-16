@@ -117,7 +117,7 @@ def _to_signed(num: int) -> int:
     return num
 
 
-class INA219: # pylint: disable=too-many-instance-attributes
+class INA219:  # pylint: disable=too-many-instance-attributes
     """Driver for the INA219 current sensor"""
 
     # Basic API:
@@ -238,7 +238,7 @@ class INA219: # pylint: disable=too-many-instance-attributes
         .. note:: These calculations assume a 0.1 shunt ohm resistor is present
         """
         # 1. Determine max possible bus voltage, 16 or 32 V
-        #self.bus_voltage_range = BusVoltageRange.RANGE_16V
+        # self.bus_voltage_range = BusVoltageRange.RANGE_16V
         self.bus_voltage_range = BusVoltageRange.RANGE_32V
 
         # 2. Determine the installed shunt resistor value
@@ -268,10 +268,12 @@ class INA219: # pylint: disable=too-many-instance-attributes
         # stand is 26 V
 
         # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
-        #self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
-        #self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
-        #self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
-        self.gain = Gain.DIV_8_320MV   # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+        # self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        # self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        # self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        self.gain = (
+            Gain.DIV_8_320MV
+        )  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
 
         # 6. Select a calibration value
         # Values below 4096 will harm the resolution
@@ -313,7 +315,7 @@ class INA219: # pylint: disable=too-many-instance-attributes
         self.mode = Mode.SANDBVOLT_CONTINUOUS
         # With triggered mode, a new measurement is performed each time the triggered mode is
         # configured (the following line works both as configuration and as trigger)
-        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # self.mode = Mode.SANDBVOLT_TRIGGERED
         # In order to know if the triggered measurement is complete, the status of
         # conversion_ready can be checked
 
@@ -323,7 +325,7 @@ class INA219: # pylint: disable=too-many-instance-attributes
 
         .. note:: These calculations assume a 0.1 ohm shunt resistor is present"""
         # 1. Determine max possible bus voltage, 16 or 32 V
-        #self.bus_voltage_range = BusVoltageRange.RANGE_16V
+        # self.bus_voltage_range = BusVoltageRange.RANGE_16V
         self.bus_voltage_range = BusVoltageRange.RANGE_32V
 
         # 2. Determine the installed shunt resistor value
@@ -353,10 +355,12 @@ class INA219: # pylint: disable=too-many-instance-attributes
         # stand is 26 V
 
         # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
-        #self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
-        #self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
-        self.gain = Gain.DIV_4_160MV   # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
-        #self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+        # self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        # self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        self.gain = (
+            Gain.DIV_4_160MV
+        )  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        # self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
 
         # 6. Select a calibration value
         # Values below 4096 will harm the resolution
@@ -398,7 +402,7 @@ class INA219: # pylint: disable=too-many-instance-attributes
         self.mode = Mode.SANDBVOLT_CONTINUOUS
         # With triggered mode, a new measurement is performed each time the triggered mode is
         # configured (the following line works both as configuration and as trigger)
-        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # self.mode = Mode.SANDBVOLT_TRIGGERED
         # In order to know if the triggered measurement is complete, the status of
         # conversion_ready can be checked
 
@@ -408,7 +412,7 @@ class INA219: # pylint: disable=too-many-instance-attributes
         .. note:: These calculations assume a 0.1 ohm shunt resistor is present"""
         # 1. Determine max possible bus voltage, 16 or 32 V
         self.bus_voltage_range = BusVoltageRange.RANGE_16V
-        #self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        # self.bus_voltage_range = BusVoltageRange.RANGE_32V
 
         # 2. Determine the installed shunt resistor value
         # By default, a 0.1 Ohm resistor is installed
@@ -437,10 +441,10 @@ class INA219: # pylint: disable=too-many-instance-attributes
         # stand is 26 V
 
         # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
-        self.gain = Gain.DIV_1_40MV    # For 0 < MaxExpected_I < MaxI_gain1_40mV
-        #self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
-        #self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
-        #self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+        self.gain = Gain.DIV_1_40MV  # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        # self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        # self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        # self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
 
         # 6. Select a calibration value
         # Values below 4096 will harm the resolution
@@ -482,7 +486,7 @@ class INA219: # pylint: disable=too-many-instance-attributes
         self.mode = Mode.SANDBVOLT_CONTINUOUS
         # With triggered mode, a new measurement is performed each time the triggered mode is
         # configured (the following line works both as configuration and as trigger)
-        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # self.mode = Mode.SANDBVOLT_TRIGGERED
         # In order to know if the triggered measurement is complete, the status of
         # conversion_ready can be checked
 
@@ -493,7 +497,7 @@ class INA219: # pylint: disable=too-many-instance-attributes
         .. note:: These calculations assume a 0.02 ohm shunt resistor is present"""
         # 1. Determine max possible bus voltage, 16 or 32 V
         self.bus_voltage_range = BusVoltageRange.RANGE_16V
-        #self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        # self.bus_voltage_range = BusVoltageRange.RANGE_32V
 
         # 2. Determine the installed shunt resistor value
         # By default, a 0.1 Ohm resistor is installed
@@ -522,10 +526,12 @@ class INA219: # pylint: disable=too-many-instance-attributes
         # stand is 26 V
 
         # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
-        #self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
-        #self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
-        self.gain = Gain.DIV_4_160MV   # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
-        #self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+        # self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        # self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        self.gain = (
+            Gain.DIV_4_160MV
+        )  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        # self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
 
         # 6. Select a calibration value
         # Values below 4096 will harm the resolution
@@ -567,7 +573,7 @@ class INA219: # pylint: disable=too-many-instance-attributes
         self.mode = Mode.SANDBVOLT_CONTINUOUS
         # With triggered mode, a new measurement is performed each time the triggered mode is
         # configured (the following line works both as configuration and as trigger)
-        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # self.mode = Mode.SANDBVOLT_TRIGGERED
         # In order to know if the triggered measurement is complete, the status of
         # conversion_ready can be checked
 
@@ -577,7 +583,7 @@ class INA219: # pylint: disable=too-many-instance-attributes
         .. note:: These calculations assume a 1 ohm shunt resistor is present"""
         # 1. Determine max possible bus voltage, 16 or 32 V
         self.bus_voltage_range = BusVoltageRange.RANGE_16V
-        #self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        # self.bus_voltage_range = BusVoltageRange.RANGE_32V
 
         # 2. Determine the installed shunt resistor value
         # By default, a 0.1 Ohm resistor is installed
@@ -606,10 +612,12 @@ class INA219: # pylint: disable=too-many-instance-attributes
         # stand is 26 V
 
         # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
-        #self.gain = Gain.DIV_1_40MV    # For 0 < MaxExpected_I < MaxI_gain1_40mV
-        self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
-        #self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
-        #self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+        # self.gain = Gain.DIV_1_40MV    # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        self.gain = (
+            Gain.DIV_2_80MV
+        )  # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        # self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        # self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
 
         # 6. Select a calibration value
         # Values below 4096 will harm the resolution
@@ -651,7 +659,7 @@ class INA219: # pylint: disable=too-many-instance-attributes
         self.mode = Mode.SANDBVOLT_CONTINUOUS
         # With triggered mode, a new measurement is performed each time the triggered mode is
         # configured (the following line works both as configuration and as trigger)
-        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # self.mode = Mode.SANDBVOLT_TRIGGERED
         # In order to know if the triggered measurement is complete, the status of
         # conversion_ready can be checked
 
@@ -661,7 +669,7 @@ class INA219: # pylint: disable=too-many-instance-attributes
         .. note:: These calculations assume a 10 ohm shunt resistor is present"""
         # 1. Determine max possible bus voltage, 16 or 32 V
         self.bus_voltage_range = BusVoltageRange.RANGE_16V
-        #self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        # self.bus_voltage_range = BusVoltageRange.RANGE_32V
 
         # 2. Determine the installed shunt resistor value
         # By default, a 0.1 Ohm resistor is installed
@@ -690,10 +698,10 @@ class INA219: # pylint: disable=too-many-instance-attributes
         # stand is 26 V
 
         # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
-        self.gain = Gain.DIV_1_40MV    # For 0 < MaxExpected_I < MaxI_gain1_40mV
-        #self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
-        #self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
-        #self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+        self.gain = Gain.DIV_1_40MV  # For 0 < MaxExpected_I < MaxI_gain1_40mV
+        # self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        # self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        # self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
 
         # 6. Select a calibration value
         # Values below 4096 will harm the resolution
@@ -735,6 +743,6 @@ class INA219: # pylint: disable=too-many-instance-attributes
         self.mode = Mode.SANDBVOLT_CONTINUOUS
         # With triggered mode, a new measurement is performed each time the triggered mode is
         # configured (the following line works both as configuration and as trigger)
-        #self.mode = Mode.SANDBVOLT_TRIGGERED
+        # self.mode = Mode.SANDBVOLT_TRIGGERED
         # In order to know if the triggered measurement is complete, the status of
         # conversion_ready can be checked
