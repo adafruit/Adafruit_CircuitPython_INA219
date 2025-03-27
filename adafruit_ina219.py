@@ -37,7 +37,10 @@ try:
     import typing  # pylint: disable=unused-import
     from busio import I2C
 except ImportError:
-    pass
+    # define I2C to avoid the error:
+    # def __init__(self, i2c_bus: I2C, addr: int = 0x40) -> None:
+    # NameError: name 'I2C' is not defined
+    I2C = None
 
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_INA219.git"
