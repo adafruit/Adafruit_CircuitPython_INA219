@@ -26,15 +26,15 @@ Implementation Notes
 * Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
 """
 
-from micropython import const
 from adafruit_bus_device.i2c_device import I2CDevice
-
-from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
-from adafruit_register.i2c_bits import ROBits, RWBits
 from adafruit_register.i2c_bit import ROBit
+from adafruit_register.i2c_bits import ROBits, RWBits
+from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
+from micropython import const
 
 try:
-    import typing  # pylint: disable=unused-import
+    import typing
+
     from busio import I2C
 except ImportError:
     pass
@@ -43,7 +43,6 @@ __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_INA219.git"
 
 # Bits
-# pylint: disable=too-few-public-methods
 
 # Config Register (R/W)
 _REG_CONFIG = const(0x00)
@@ -191,9 +190,7 @@ class INA219:
 
     @calibration.setter
     def calibration(self, cal_value: int) -> None:
-        self._cal_value = (
-            cal_value  # value is cached for ``current`` and ``power`` properties
-        )
+        self._cal_value = cal_value  # value is cached for ``current`` and ``power`` properties
         self._raw_calibration = self._cal_value
 
     @property
@@ -231,7 +228,7 @@ class INA219:
         # Now we can safely read the CURRENT register!
         return self.raw_power * self._power_lsb
 
-    def set_calibration_32V_2A(self) -> None:  # pylint: disable=invalid-name
+    def set_calibration_32V_2A(self) -> None:
         """Configures to INA219 to be able to measure up to 32V and 2A of current. Counter
         overflow occurs at 3.2A.
 
@@ -312,7 +309,7 @@ class INA219:
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.mode = Mode.SANDBVOLT_CONTINUOUS
 
-    def set_calibration_32V_1A(self) -> None:  # pylint: disable=invalid-name
+    def set_calibration_32V_1A(self) -> None:
         """Configures to INA219 to be able to measure up to 32V and 1A of current. Counter overflow
         occurs at 1.3A.
 
@@ -394,7 +391,7 @@ class INA219:
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.mode = Mode.SANDBVOLT_CONTINUOUS
 
-    def set_calibration_16V_400mA(self) -> None:  # pylint: disable=invalid-name
+    def set_calibration_16V_400mA(self) -> None:
         """Configures to INA219 to be able to measure up to 16V and 400mA of current. Counter
         overflow occurs at 1.6A.
 
@@ -477,7 +474,7 @@ class INA219:
         self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_1S
         self.mode = Mode.SANDBVOLT_CONTINUOUS
 
-    def set_calibration_16V_5A(self) -> None:  # pylint: disable=invalid-name
+    def set_calibration_16V_5A(self) -> None:
         """Configures to INA219 to be able to measure up to 16V and 5000mA of current. Counter
         overflow occurs at 8.0A.
 
