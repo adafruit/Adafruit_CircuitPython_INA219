@@ -37,10 +37,7 @@ try:
 
     from busio import I2C
 except ImportError:
-    # define I2C to avoid the error:
-    # def __init__(self, i2c_bus: I2C, addr: int = 0x40) -> None:
-    # NameError: name 'I2C' is not defined
-    I2C = None
+    pass
 
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_INA219.git"
@@ -153,7 +150,7 @@ class INA219:
     # raw_current                 RO : Current register (not scaled)
     # calibration                 RW : calibration register (note: value is cached)
 
-    def __init__(self, i2c_bus: I2C, addr: int = 0x40) -> None:
+    def __init__(self, i2c_bus: "I2C", addr: int = 0x40) -> None:
         self.i2c_device = I2CDevice(i2c_bus, addr)
         self.i2c_addr = addr
 
