@@ -4,9 +4,10 @@
 """Sample code and test for adafruit_ina219"""
 
 import time
-import board
-from adafruit_ina219 import ADCResolution, BusVoltageRange, INA219
 
+import board
+
+from adafruit_ina219 import INA219, ADCResolution, BusVoltageRange
 
 i2c_bus = board.I2C()  # uses board.SCL and board.SDA
 # i2c_bus = board.STEMMA_I2C()  # For using the built-in STEMMA QT connector on a microcontroller
@@ -38,12 +39,12 @@ while True:
     power = ina219.power  # power in watts
 
     # INA219 measure bus voltage on the load side. So PSU voltage = bus_voltage + shunt_voltage
-    print("Voltage (VIN+) : {:6.3f}   V".format(bus_voltage + shunt_voltage))
-    print("Voltage (VIN-) : {:6.3f}   V".format(bus_voltage))
-    print("Shunt Voltage  : {:8.5f} V".format(shunt_voltage))
-    print("Shunt Current  : {:7.4f}  A".format(current / 1000))
-    print("Power Calc.    : {:8.5f} W".format(bus_voltage * (current / 1000)))
-    print("Power Register : {:6.3f}   W".format(power))
+    print(f"Voltage (VIN+) : {bus_voltage + shunt_voltage:6.3f}   V")
+    print(f"Voltage (VIN-) : {bus_voltage:6.3f}   V")
+    print(f"Shunt Voltage  : {shunt_voltage:8.5f} V")
+    print(f"Shunt Current  : {current / 1000:7.4f}  A")
+    print(f"Power Calc.    : {bus_voltage * (current / 1000):8.5f} W")
+    print(f"Power Register : {power:6.3f}   W")
     print("")
 
     # Check internal calculations haven't overflowed (doesn't detect ADC overflows)

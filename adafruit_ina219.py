@@ -26,15 +26,15 @@ Implementation Notes
 * Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
 """
 
-from micropython import const
 from adafruit_bus_device.i2c_device import I2CDevice
-
-from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
-from adafruit_register.i2c_bits import ROBits, RWBits
 from adafruit_register.i2c_bit import ROBit
+from adafruit_register.i2c_bits import ROBits, RWBits
+from adafruit_register.i2c_struct import ROUnaryStruct, UnaryStruct
+from micropython import const
 
 try:
-    import typing  # pylint: disable=unused-import
+    import typing
+
     from busio import I2C
 except ImportError:
     pass
@@ -43,7 +43,6 @@ __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_INA219.git"
 
 # Bits
-# pylint: disable=too-few-public-methods
 
 # Config Register (R/W)
 _REG_CONFIG = const(0x00)
@@ -117,7 +116,7 @@ def _to_signed(num: int) -> int:
     return num
 
 
-class INA219:  # pylint: disable=too-many-instance-attributes
+class INA219:
     """Driver for the INA219 current sensor"""
 
     # Basic API:
@@ -151,7 +150,7 @@ class INA219:  # pylint: disable=too-many-instance-attributes
     # raw_current                 RO : Current register (not scaled)
     # calibration                 RW : calibration register (note: value is cached)
 
-    def __init__(self, i2c_bus: I2C, addr: int = 0x40) -> None:
+    def __init__(self, i2c_bus: "I2C", addr: int = 0x40) -> None:
         self.i2c_device = I2CDevice(i2c_bus, addr)
         self.i2c_addr = addr
 
@@ -191,9 +190,7 @@ class INA219:  # pylint: disable=too-many-instance-attributes
 
     @calibration.setter
     def calibration(self, cal_value: int) -> None:
-        self._cal_value = (
-            cal_value  # value is cached for ``current`` and ``power`` properties
-        )
+        self._cal_value = cal_value  # value is cached for ``current`` and ``power`` properties
         self._raw_calibration = self._cal_value
 
     @property
@@ -231,7 +228,7 @@ class INA219:  # pylint: disable=too-many-instance-attributes
         # Now we can safely read the CURRENT register!
         return self.raw_power * self._power_lsb
 
-    def set_calibration_32V_2A(self) -> None:  # pylint: disable=invalid-name
+    def set_calibration_32V_2A(self) -> None:
         """Configures to INA219 to be able to measure up to 32V and 2A of current.
         Actual max current: 3.2 A.
 
@@ -319,7 +316,7 @@ class INA219:  # pylint: disable=too-many-instance-attributes
         # In order to know if the triggered measurement is complete, the status of
         # conversion_ready can be checked
 
-    def set_calibration_32V_1A(self) -> None:  # pylint: disable=invalid-name
+    def set_calibration_32V_1A(self) -> None:
         """Configures to INA219 to be able to measure up to 32V and 1A of current.
         Actual max current: 1.6 A.
 
@@ -406,8 +403,9 @@ class INA219:  # pylint: disable=too-many-instance-attributes
         # In order to know if the triggered measurement is complete, the status of
         # conversion_ready can be checked
 
-    def set_calibration_16V_400mA(self) -> None:  # pylint: disable=invalid-name
-        """Configures to INA219 to be able to measure up to 16V and 400mA of current.
+    def set_calibration_16V_400mA(self) -> None:
+        """Configures to INA219 to be able to measure up to 16V and 400mA of current. Counter
+        overflow occurs at 1.6A.
 
         .. note:: These calculations assume a 0.1 ohm shunt resistor is present"""
         # 1. Determine max possible bus voltage, 16 or 32 V
@@ -490,9 +488,9 @@ class INA219:  # pylint: disable=too-many-instance-attributes
         # In order to know if the triggered measurement is complete, the status of
         # conversion_ready can be checked
 
-    def set_calibration_16V_5A(self) -> None:  # pylint: disable=invalid-name
+    def set_calibration_16V_5A(self) -> None:
         """Configures to INA219 to be able to measure up to 16V and 5000mA of current.
-        Actual max current: 8 A.
+        Actual max current: 8.0 A.
 
         .. note:: These calculations assume a 0.02 ohm shunt resistor is present"""
         # 1. Determine max possible bus voltage, 16 or 32 V
