@@ -107,7 +107,6 @@ _REG_CURRENT = const(0x04)
 
 # CALIBRATION REGISTER (R/W)
 _REG_CALIBRATION = const(0x05)
-# pylint: enable=too-few-public-methods
 
 
 def _to_signed(num: int) -> int:
@@ -268,9 +267,7 @@ class INA219:
         # self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
         # self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
         # self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
-        self.gain = (
-            Gain.DIV_8_320MV
-        )  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
+        self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
 
         # 6. Select a calibration value
         # Values below 4096 will harm the resolution
@@ -354,9 +351,7 @@ class INA219:
         # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
         # self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
         # self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
-        self.gain = (
-            Gain.DIV_4_160MV
-        )  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
         # self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
 
         # 6. Select a calibration value
@@ -526,9 +521,7 @@ class INA219:
         # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
         # self.gain = Gain.DIV_1_40MV   # For 0 < MaxExpected_I < MaxI_gain1_40mV
         # self.gain = Gain.DIV_2_80MV   # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
-        self.gain = (
-            Gain.DIV_4_160MV
-        )  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
+        self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
         # self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
 
         # 6. Select a calibration value
@@ -575,7 +568,7 @@ class INA219:
         # In order to know if the triggered measurement is complete, the status of
         # conversion_ready can be checked
 
-    def set_calibration_16V_80mA(self) -> None:  # pylint: disable=invalid-name
+    def set_calibration_16V_80mA(self) -> None:
         """Configures to INA219 to be able to measure up to 16V and 80mA of current.
 
         .. note:: These calculations assume a 1 ohm shunt resistor is present"""
@@ -611,9 +604,7 @@ class INA219:
 
         # 5. Select a gain for which MaxI_gainX_XXmV > MaxExpected_I
         # self.gain = Gain.DIV_1_40MV    # For 0 < MaxExpected_I < MaxI_gain1_40mV
-        self.gain = (
-            Gain.DIV_2_80MV
-        )  # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
+        self.gain = Gain.DIV_2_80MV  # For MaxI_gain1_40mV < MaxExpected_I < MaxI_gain2_80mV
         # self.gain = Gain.DIV_4_160MV  # For MaxI_gain2_80mV < MaxExpected_I < MaxI_gain4_160mV
         # self.gain = Gain.DIV_8_320MV  # For MaxI_gain4_160mV < MaxExpected_I < MaxI_gain8_320mV
 
@@ -661,7 +652,7 @@ class INA219:
         # In order to know if the triggered measurement is complete, the status of
         # conversion_ready can be checked
 
-    def set_calibration_16V_4mA(self) -> None:  # pylint: disable=invalid-name
+    def set_calibration_16V_4mA(self) -> None:
         """Configures to INA219 to be able to measure up to 16V and 4mA of current.
 
         .. note:: These calculations assume a 10 ohm shunt resistor is present"""
