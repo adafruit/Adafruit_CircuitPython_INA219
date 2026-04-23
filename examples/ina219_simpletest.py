@@ -18,11 +18,11 @@ print("ina219 test")
 
 # display some of the advanced field (just to test)
 print("Config register:")
-print("  bus_voltage_range:    0x%1X" % ina219.bus_voltage_range)
-print("  gain:                 0x%1X" % ina219.gain)
-print("  bus_adc_resolution:   0x%1X" % ina219.bus_adc_resolution)
-print("  shunt_adc_resolution: 0x%1X" % ina219.shunt_adc_resolution)
-print("  mode:                 0x%1X" % ina219.mode)
+print(f"  bus_voltage_range:    0x{ina219.bus_voltage_range:1X}")
+print(f"  gain:                 0x{ina219.gain:1X}")
+print(f"  bus_adc_resolution:   0x{ina219.bus_adc_resolution:1X}")
+print(f"  shunt_adc_resolution: 0x{ina219.shunt_adc_resolution:1X}")
+print(f"  mode:                 0x{ina219.mode:1X}")
 print("")
 
 # optional : change configuration to use 32 samples averaging for both bus voltage and shunt voltage
